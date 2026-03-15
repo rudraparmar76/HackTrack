@@ -1,0 +1,566 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { formatDate, daysUntil, getStatusColor, getPlatformColor, getPriorityColor, getCountdownClass } from "@/lib/utils";
+import {
+  ArrowLeft,
+  Calendar,
+  Trophy,
+  Users,
+  Clock,
+  ExternalLink,
+  Trash2,
+  Plus,
+  GripVertical,
+  FileText,
+  Loader2,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+interface Hackathon {
+  id: string; name: string; url: string | null; platform: string | null;
+  banner_url: string | null; description: string | null;
+  start_date: string | null; end_date: string | null;
+  registration_deadline: string | null; submission_deadline: string | null;
+  result_date: string | null; prize_pool: string | null;
+  team_size_min: number | null; team_size_max: number | null;
+  status: string; created_at: string; user_id: string;
+}
+
+interface TeamMember {
+  id: string; name: string; email: string | null; role: string;
+}
+
+interface Task {
+  id: string; title: string; description: string | null;
+  status: string; priority: string; due_date: string | null;
+  assignee_id: string | null; position: number;
+}
+
+interface ProblemStatement {
+  id: string; title: string; description: string | null; track: string | null;
+}
+
+interface Note {
+  id: string; content: string; updated_at: string;
+}
+
+const KANBAN_COLUMNS = [
+  { key: "idea", label: "💡 Idea" },
+  { key: "design", label: "🎨 Design" },
+  { key: "building", label: "🔨 Building" },
+  { key: "testing", label: "🧪 Testing" },
+  { key: "submitted", label: "🚀 Submitted" },
+];
+
+const ROLES = ["Leader", "Developer", "Designer", "ML Engineer", "Data Scientist", "DevOps", "Presenter"];
+
+export default function HackathonDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const supabase = createClient();
+  const { toast } = useToast();
+  const hackathonId = params.id as string;
+
+  const [hackathon, setHackathon] = useState<Hackathon | null>(null);
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [problems, setProblems] = useState<ProblemStatement[]>([]);
+  const [note, setNote] = useState<Note | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Dialogs
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState("Developer");
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState("medium");
+  const [newTaskStatus, setNewTaskStatus] = useState("idea");
+  const [noteContent, setNoteContent] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    const [hackRes, teamRes, taskRes, psRes, noteRes] = await Promise.all([
+      supabase.from("hackathons").select("*").eq("id", hackathonId).single(),
+      supabase.from("team_members").select("*").eq("hackathon_id", hackathonId),
+      supabase.from("tasks").select("*").eq("hackathon_id", hackathonId).order("position"),
+      supabase.from("problem_statements").select("*").eq("hackathon_id", hackathonId),
+      supabase.from("notes").select("*").eq("hackathon_id", hackathonId).limit(1),
+    ]);
+    setHackathon(hackRes.data);
+    setTeam(teamRes.data || []);
+    setTasks(taskRes.data || []);
+    setProblems(psRes.data || []);
+    if (noteRes.data && noteRes.data.length > 0) {
+      setNote(noteRes.data[0]);
+      setNoteContent(noteRes.data[0].content);
+    }
+    setLoading(false);
+  }, [hackathonId]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this hackathon? This cannot be undone.")) return;
+    await supabase.from("hackathons").delete().eq("id", hackathonId);
+    toast({ title: "Deleted", description: "Hackathon has been removed." });
+    router.push("/dashboard");
+  };
+
+  const addTeamMember = async () => {
+    if (!newMemberName.trim()) return;
+    const maxSize = hackathon?.team_size_max || 4;
+    if (team.length >= maxSize) {
+      toast({
+        title: "Team is full",
+        description: `Maximum team size is ${maxSize} members. Remove a member first.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    await supabase.from("team_members").insert({
+      hackathon_id: hackathonId,
+      name: newMemberName,
+      email: newMemberEmail || null,
+      role: newMemberRole,
+    });
+    setNewMemberName(""); setNewMemberEmail(""); setNewMemberRole("Developer");
+    setShowAddMember(false);
+    fetchAll();
+    toast({ title: "Member added" });
+  };
+
+  const removeMember = async (id: string) => {
+    await supabase.from("team_members").delete().eq("id", id);
+    fetchAll();
+  };
+
+  const addTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    await supabase.from("tasks").insert({
+      hackathon_id: hackathonId,
+      title: newTaskTitle,
+      status: newTaskStatus,
+      priority: newTaskPriority,
+      position: tasks.length,
+    });
+    setNewTaskTitle(""); setNewTaskPriority("medium"); setNewTaskStatus("idea");
+    setShowAddTask(false);
+    fetchAll();
+    toast({ title: "Task added" });
+  };
+
+  const moveTask = async (taskId: string, newStatus: string) => {
+    await supabase.from("tasks").update({ status: newStatus }).eq("id", taskId);
+    fetchAll();
+  };
+
+  const deleteTask = async (taskId: string) => {
+    await supabase.from("tasks").delete().eq("id", taskId);
+    fetchAll();
+  };
+
+  const saveNote = async () => {
+    setSavingNote(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    if (note) {
+      await supabase.from("notes").update({ content: noteContent, updated_at: new Date().toISOString() }).eq("id", note.id);
+    } else {
+      const { data } = await supabase.from("notes").insert({
+        hackathon_id: hackathonId,
+        user_id: user.id,
+        content: noteContent,
+      }).select().single();
+      if (data) setNote(data);
+    }
+    setSavingNote(false);
+    toast({ title: "Note saved" });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#00FF87]" />
+      </div>
+    );
+  }
+
+  if (!hackathon) {
+    return <div className="text-center py-20 text-[#7A8099]">Hackathon not found.</div>;
+  }
+
+  const daysLeft = daysUntil(hackathon.submission_deadline);
+  const countdownClass = getCountdownClass(hackathon.submission_deadline);
+  const taskProgress = tasks.length > 0
+    ? Math.round((tasks.filter((t) => t.status === "submitted").length / tasks.length) * 100)
+    : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <Link href="/dashboard" className="p-2 rounded-lg hover:bg-[#1A1F2E] transition-colors text-[#7A8099] hover:text-[#E8EAF0] mt-1">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-[#E8EAF0]">{hackathon.name}</h1>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(hackathon.status)}`}>
+                {hackathon.status === "active" && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] pulse-dot" />
+                )}
+                {hackathon.status.charAt(0).toUpperCase() + hackathon.status.slice(1)}
+              </span>
+              {hackathon.platform && (
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getPlatformColor(hackathon.platform)}`}>
+                  {hackathon.platform}
+                </span>
+              )}
+            </div>
+            {hackathon.url && (
+              <a href={hackathon.url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#00D4FF] hover:underline flex items-center gap-1">
+                {hackathon.url.replace(/https?:\/\//, "").slice(0, 50)}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-400 border-red-500/20 hover:bg-red-500/10 gap-1">
+          <Trash2 className="w-3.5 h-3.5" /> Delete
+        </Button>
+      </div>
+
+      {/* Countdown Bar */}
+      {daysLeft !== null && (
+        <div className="hack-card rounded-xl p-4 flex items-center gap-4">
+          <Clock className="w-5 h-5 text-[#00FF87] shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm text-[#7A8099]">Submission Deadline</p>
+            <p className={`text-lg font-bold font-mono ${countdownClass}`}>
+              {daysLeft > 0 ? `${daysLeft} days remaining` : daysLeft === 0 ? "Due today!" : "Deadline passed"}
+            </p>
+          </div>
+          <div className="text-right text-sm text-[#7A8099] font-mono">
+            {formatDate(hackathon.submission_deadline)}
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <Tabs defaultValue="overview">
+        <TabsList className="bg-[#1A1F2E] border border-[#1E2330]">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="team">Team ({team.length})</TabsTrigger>
+          <TabsTrigger value="progress">Progress</TabsTrigger>
+          <TabsTrigger value="notes">Notes</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          {/* Banner */}
+          {hackathon.banner_url && (
+            <div className="rounded-xl overflow-hidden h-48 border border-[#1E2330]">
+              <img src={hackathon.banner_url} alt={hackathon.name} className="w-full h-full object-cover" />
+            </div>
+          )}
+
+          {/* Description */}
+          {hackathon.description && (
+            <div className="hack-card rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[#7A8099] mb-2">Description</h3>
+              <p className="text-sm leading-relaxed text-[#E8EAF0]">{hackathon.description}</p>
+            </div>
+          )}
+
+          {/* Key Dates */}
+          <div className="hack-card rounded-xl p-5">
+            <h3 className="text-sm font-medium text-[#7A8099] mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4" /> Key Dates
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              {[
+                { label: "Start", date: hackathon.start_date },
+                { label: "End", date: hackathon.end_date },
+                { label: "Registration", date: hackathon.registration_deadline },
+                { label: "Submission", date: hackathon.submission_deadline },
+                { label: "Results", date: hackathon.result_date },
+              ].map((d) => (
+                <div key={d.label} className="bg-[#151820] rounded-lg p-3 border border-[#1E2330]">
+                  <p className="text-xs text-[#454D66] mb-1">{d.label}</p>
+                  <p className="text-sm font-medium font-mono text-[#E8EAF0]">{formatDate(d.date)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Prizes & Team Size */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {hackathon.prize_pool && (
+              <div className="hack-card rounded-xl p-5">
+                <h3 className="text-sm font-medium text-[#7A8099] mb-2 flex items-center gap-2">
+                  <Trophy className="w-4 h-4" /> Prize Pool
+                </h3>
+                <p className="text-xl font-bold font-mono text-[#00FF87]">{hackathon.prize_pool}</p>
+              </div>
+            )}
+            <div className="hack-card rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[#7A8099] mb-2 flex items-center gap-2">
+                <Users className="w-4 h-4" /> Team Size
+              </h3>
+              <p className="text-xl font-bold font-mono text-[#E8EAF0]">
+                {hackathon.team_size_min || 1} – {hackathon.team_size_max || 4} members
+              </p>
+            </div>
+          </div>
+
+          {/* Problem Statements */}
+          {problems.length > 0 && (
+            <div className="hack-card rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[#7A8099] mb-3">Problem Statements / Tracks</h3>
+              <div className="space-y-2">
+                {problems.map((ps) => (
+                  <div key={ps.id} className="flex items-center gap-3 bg-[#151820] rounded-lg px-4 py-3 text-sm border border-[#1E2330]">
+                    {ps.track && <span className="text-[#00FF87] font-medium font-mono">{ps.track}</span>}
+                    <span className="text-[#E8EAF0]">{ps.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Team Tab */}
+        <TabsContent value="team" className="space-y-4 mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <h3 className="font-semibold text-[#E8EAF0]">Team Members</h3>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+                team.length >= (hackathon?.team_size_max || 4)
+                  ? 'bg-red-500/20 text-red-400'
+                  : 'bg-[#1A1F2E] text-[#7A8099]'
+              }`}>
+                {team.length}/{hackathon?.team_size_max || 4} members
+              </span>
+            </div>
+            <Dialog open={showAddMember} onOpenChange={setShowAddMember}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  className="gap-1"
+                  disabled={team.length >= (hackathon?.team_size_max || 4)}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {team.length >= (hackathon?.team_size_max || 4) ? 'Team Full' : 'Add Member'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Add Team Member</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label>Name *</Label>
+                    <Input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Member name" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input value={newMemberEmail} onChange={(e) => setNewMemberEmail(e.target.value)} placeholder="member@email.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Role</Label>
+                    <Select value={newMemberRole} onValueChange={setNewMemberRole}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={addTeamMember} className="w-full">Add Member</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {team.length === 0 ? (
+            <div className="text-center py-12 text-[#7A8099]">
+              <Users className="w-12 h-12 mx-auto mb-3 text-[#1E2330]" />
+              <p className="text-sm">No team members yet</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {team.map((m) => (
+                <div key={m.id} className="hack-card rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#00FF87]/10 flex items-center justify-center text-sm font-bold text-[#00FF87] shrink-0">
+                    {m.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-[#E8EAF0] truncate">{m.name}</p>
+                    <p className="text-xs text-[#7A8099]">{m.role}</p>
+                  </div>
+                  <button onClick={() => removeMember(m.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Progress Tab — Kanban */}
+        <TabsContent value="progress" className="space-y-4 mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <h3 className="font-semibold text-[#E8EAF0]">Progress Tracker</h3>
+              <div className="flex items-center gap-2 text-sm text-[#7A8099]">
+                <Progress value={taskProgress} className="w-32 h-2" />
+                <span className="font-mono">{taskProgress}%</span>
+              </div>
+            </div>
+            <Dialog open={showAddTask} onOpenChange={setShowAddTask}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1"><Plus className="w-3.5 h-3.5" /> Add Task</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Add Task</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label>Title *</Label>
+                    <Input value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Task title" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Column</Label>
+                    <Select value={newTaskStatus} onValueChange={setNewTaskStatus}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {KANBAN_COLUMNS.map((c) => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Priority</Label>
+                    <Select value={newTaskPriority} onValueChange={setNewTaskPriority}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={addTask} className="w-full">Add Task</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Kanban Board */}
+          <div className="flex gap-3 overflow-x-auto pb-4">
+            {KANBAN_COLUMNS.map((col) => {
+              const colTasks = tasks.filter((t) => t.status === col.key);
+              return (
+                <div key={col.key} className="flex-shrink-0 w-60">
+                  <div className="frosted-glass rounded-lg p-3 mb-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-[#E8EAF0]">{col.label}</span>
+                      <span className="text-xs text-[#7A8099] bg-[#0F1117]/50 px-2 py-0.5 rounded-full font-mono">{colTasks.length}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2 min-h-[200px]">
+                    {colTasks.map((task) => (
+                      <motion.div
+                        key={task.id}
+                        layout
+                        className="hack-card rounded-lg p-3 cursor-default"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <p className="text-sm font-medium leading-snug text-[#E8EAF0]">{task.title}</p>
+                          <button onClick={() => deleteTask(task.id)} className="text-[#454D66] hover:text-red-400 transition-colors shrink-0">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                          {/* Move buttons */}
+                          <div className="flex gap-1">
+                            {KANBAN_COLUMNS.map((target) => {
+                              if (target.key === col.key) return null;
+                              return (
+                                <button
+                                  key={target.key}
+                                  onClick={() => moveTask(task.id, target.key)}
+                                  className="text-[10px] px-1.5 py-0.5 rounded bg-[#151820] text-[#7A8099] hover:bg-[#1E2330] hover:text-[#E8EAF0] transition-colors border border-[#1E2330]"
+                                  title={`Move to ${target.label}`}
+                                >
+                                  {target.label.split(" ")[0]}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        {/* Notes Tab */}
+        <TabsContent value="notes" className="space-y-4 mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold flex items-center gap-2 text-[#E8EAF0]">
+              <FileText className="w-4 h-4 text-[#00FF87]" /> Notes
+            </h3>
+            <Button size="sm" onClick={saveNote} disabled={savingNote} className="gap-1">
+              {savingNote ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+              Save
+            </Button>
+          </div>
+          <div className="hack-card rounded-xl overflow-hidden">
+            <textarea
+              value={noteContent}
+              onChange={(e) => setNoteContent(e.target.value)}
+              placeholder="Write your notes here... Ideas, tech stack decisions, API keys, mentor feedback, etc."
+              className="w-full min-h-[400px] bg-transparent p-5 text-sm leading-relaxed resize-none focus:outline-none placeholder:text-[#454D66] text-[#E8EAF0] font-mono"
+            />
+          </div>
+          {note && (
+            <p className="text-xs text-[#454D66] text-right font-mono">
+              Last saved: {formatDate(note.updated_at)}
+            </p>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

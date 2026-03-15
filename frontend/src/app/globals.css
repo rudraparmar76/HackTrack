@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 228 25% 7%;
+    --foreground: 228 20% 92%;
+    --card: 225 25% 14%;
+    --card-foreground: 228 20% 92%;
+    --popover: 225 25% 14%;
+    --popover-foreground: 228 20% 92%;
+    --primary: 152 100% 50%;
+    --primary-foreground: 228 25% 7%;
+    --secondary: 225 20% 12%;
+    --secondary-foreground: 228 20% 92%;
+    --muted: 225 20% 12%;
+    --muted-foreground: 228 15% 55%;
+    --accent: 225 20% 12%;
+    --accent-foreground: 228 20% 92%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 228 20% 92%;
+    --border: 225 20% 16%;
+    --input: 225 20% 16%;
+    --ring: 152 100% 50%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0F1117;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E2330;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2A3045;
+}
+
+/* ── Font utility ── */
+.font-mono-data {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Card styles ── */
+.hack-card {
+  background: #1A1F2E;
+  border: 1px solid #1E2330;
+  transition: all 0.3s ease;
+}
+.hack-card:hover {
+  border-color: #2A3045;
+  box-shadow: 0 0 12px rgba(0, 255, 135, 0.08);
+}
+
+/* ── Frosted glass (kanban columns) ── */
+.frosted-glass {
+  background: rgba(26, 31, 46, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 35, 48, 0.8);
+}
+
+/* ── Green glow text ── */
+.glow-text {
+  color: #00FF87;
+  text-shadow: 0 0 20px rgba(0, 255, 135, 0.3);
+}
+
+/* ── Radial green glow (hero stat only) ── */
+.hero-glow {
+  position: relative;
+}
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0, 255, 135, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glow effects ── */
+.glow-green {
+  box-shadow: 0 0 30px rgba(0, 255, 135, 0.12);
+}
+.glow-border {
+  position: relative;
+}
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(0, 255, 135, 0.2), rgba(0, 212, 255, 0.2));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+/* ── Pulsing dot (active status) ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ── Status badge styles ── */
+.status-active {
+  background: rgba(0, 255, 135, 0.15);
+  color: #00FF87;
+  border: 1px solid rgba(0, 255, 135, 0.3);
+}
+.status-upcoming {
+  background: rgba(239, 159, 39, 0.15);
+  color: #EF9F27;
+  border: 1px solid rgba(239, 159, 39, 0.3);
+}
+.status-completed {
+  background: rgba(69, 77, 102, 0.2);
+  color: #454D66;
+  border: 1px solid rgba(69, 77, 102, 0.3);
+}
+
+/* ── Countdown color classes ── */
+.countdown-urgent {
+  color: #00FF87;
+  text-shadow: 0 0 8px rgba(0, 255, 135, 0.3);
+}
+.countdown-warning {
+  color: #EF9F27;
+}
+.countdown-normal {
+  color: #E8EAF0;
+}
+
+/* ── Tiptap editor styles ── */
+.tiptap-editor .ProseMirror {
+  min-height: 300px;
+  padding: 1rem;
+  outline: none;
+}
+.tiptap-editor .ProseMirror h1 { @apply text-2xl font-bold mb-3; }
+.tiptap-editor .ProseMirror h2 { @apply text-xl font-semibold mb-2; }
+.tiptap-editor .ProseMirror h3 { @apply text-lg font-medium mb-2; }
+.tiptap-editor .ProseMirror p { @apply mb-2; }
+.tiptap-editor .ProseMirror ul { @apply list-disc pl-6 mb-2; }
+.tiptap-editor .ProseMirror ol { @apply list-decimal pl-6 mb-2; }
+.tiptap-editor .ProseMirror code {
+  @apply bg-white/10 rounded px-1.5 py-0.5 text-sm;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tiptap-editor .ProseMirror pre {
+  @apply bg-white/5 rounded-lg p-4 mb-3 text-sm;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tiptap-editor .ProseMirror blockquote {
+  @apply border-l-4 pl-4 italic opacity-80;
+  border-color: #00FF87;
+}
+.tiptap-editor .ProseMirror .is-editor-empty:first-child::before {
+  @apply text-muted-foreground;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
