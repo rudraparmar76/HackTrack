@@ -8,13 +8,49 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+const allowedOrigins = new Set([
+  "http://localhost:3000",
+  "https://hackk-track.vercel.app",
+  "https://frontend-eight-umber-62.vercel.app",
+]);
+
+function isAllowedPreviewOrigin(origin: string): boolean {
+  try {
+    const { hostname, protocol } = new URL(origin);
+    if (protocol !== "https:") return false;
+    if (!hostname.endsWith(".vercel.app")) return false;
+
+    // Allow preview deployments for this project naming pattern.
+    return hostname.startsWith("hackk-track-") || hostname.startsWith("frontend-");
+  } catch {
+    return false;
+  }
+}
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (no Origin header).
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.has(origin) || isAllowedPreviewOrigin(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
 // Supabase admin client
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-app.use(cors({ origin: ["http://localhost:3000", "https://*.vercel.app"], credentials: true }));
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // Health check
