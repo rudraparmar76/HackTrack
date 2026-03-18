@@ -64,7 +64,7 @@ app.post("/api/scrape", async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: "URL is required" });
 
-    const scraperUrl = process.env.SCRAPER_URL || "http://localhost:8000";
+    const scraperUrl = process.env.SCRAPER_URL || "https://hacktrack-scraper.onrender.com";
     const response = await fetch(`${scraperUrl}/scrape`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -312,7 +312,11 @@ app.patch("/api/notifications/read-all", async (req, res) => {
   res.json({ success: true });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 HackTrack API running on port ${PORT}`);
-});
+// Only start a local server outside Vercel Serverless runtime.
+if (process.env.VERCEL !== "1") {
+  app.listen(PORT, () => {
+    console.log("HackTrack API running on port " + PORT);
+  });
+}
+
+export default app;
