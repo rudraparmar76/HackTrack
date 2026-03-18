@@ -403,7 +403,7 @@ app.post("/api/scrape", async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: "URL is required" });
 
-    const scraperUrl = process.env.SCRAPER_URL || "https://hacktrack-scraper.onrender.com";
+    const scraperUrl = process.env.SCRAPER_URL ;
     const response = await fetch(`${scraperUrl}/scrape`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
