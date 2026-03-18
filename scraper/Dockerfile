@@ -2,7 +2,6 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system libs needed by Chromium in slim images.
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     wget \
@@ -36,10 +35,12 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN playwright install chromium
+
+# IMPORTANT FIX
+RUN playwright install --with-deps chromium
 
 COPY . .
 
-EXPOSE 10000
+EXPOSE 7860
 
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]

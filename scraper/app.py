@@ -1,13 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import asyncio
 import re
+import sys
 from urllib.parse import urlparse
 from typing import List
 from datetime import datetime
 
+if sys.platform == "win32":
+    # Playwright launches a driver subprocess; Proactor loop supports subprocess APIs on Windows.
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 app = FastAPI(title="HackTrack Scraper", version="3.0.0")
+
+# Global Playwright runtime objects reused across requests.
+playwright = None
+browser = None
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,9 +41,9 @@ class ScrapeResponse(BaseModel):
     start_date: str = ""
     end_date: str = ""
     prize_pool: str = ""
-    team_size: dict = {"min": 1, "max": 4}
-    problem_statements: List[dict] = []
-    resource_links: List[dict] = []
+    team_size: dict = Field(default_factory=lambda: {"min": 1, "max": 4})
+    problem_statements: List[dict] = Field(default_factory=list)
+    resource_links: List[dict] = Field(default_factory=list)
     scrape_success: bool = False
     url: str = ""
 
@@ -370,17 +379,53 @@ EXTRACT_SCRIPT = """() => {
 }"""
 
 
+@app.on_event("startup")
+async def startup() -> None:
+    global playwright, browser
+    from playwright.async_api import async_playwright
+
+    playwright = await async_playwright().start()
+    browser = await playwright.chromium.launch(
+        headless=True,
+        args=["--no-sandbox", "--disable-setuid-sandbox"],
+    )
+    print("[Scraper] Playwright browser initialized")
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    global playwright, browser
+
+    try:
+        if browser is not None:
+            await browser.close()
+            print("[Scraper] Browser closed")
+    finally:
+        browser = None
+
+    try:
+        if playwright is not None:
+            await playwright.stop()
+            print("[Scraper] Playwright stopped")
+    finally:
+        playwright = None
+
 async def scrape_with_playwright(url: str, platform: str) -> dict:
     """Scrape using Playwright — renders JS, grabs full innerText for parsing."""
+    global browser
     try:
-        from playwright.async_api import async_playwright
+        if browser is None:
+            return {
+                "scrape_success": False,
+                "error": "Browser is not initialized. Service startup failed.",
+            }
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-                viewport={"width": 1920, "height": 1080},
-            )
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+            viewport={"width": 1920, "height": 1080},
+        )
+
+        try:
             page = await context.new_page()
 
             print(f"[Scraper] Navigating to {url} (platform: {platform})")
@@ -389,7 +434,7 @@ async def scrape_with_playwright(url: str, platform: str) -> dict:
             # Wait for JS rendering — longer for SPAs
             wait_time = 8 if platform in ("Unstop",) else 5
             print(f"[Scraper] Waiting {wait_time}s for JS rendering...")
-            await asyncio.sleep(wait_time)
+            await page.wait_for_timeout(wait_time * 1000)
 
             # Scroll to trigger lazy content
             await page.evaluate("window.scrollTo(0, document.body.scrollHeight / 3)")
@@ -403,8 +448,6 @@ async def scrape_with_playwright(url: str, platform: str) -> dict:
 
             # Extract structured + raw text data
             data = await page.evaluate(EXTRACT_SCRIPT)
-
-            await browser.close()
 
             body_text = data.get("bodyText", "")
             name = data.get("name", "")
@@ -443,6 +486,8 @@ async def scrape_with_playwright(url: str, platform: str) -> dict:
                 "resource_links": data.get("resourceLinks", []),
                 **extracted,
             }
+        finally:
+            await context.close()
 
     except Exception as e:
         print(f"[Scraper] Error: {e}")
@@ -495,6 +540,3 @@ async def scrape(request: ScrapeRequest):
         return ScrapeResponse(platform=platform, url=url, scrape_success=False)
 
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
