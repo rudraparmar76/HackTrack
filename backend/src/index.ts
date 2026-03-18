@@ -13,7 +13,7 @@ const resendFrom = process.env.RESEND_FROM_EMAIL || "HackTrack <onboarding@resen
 
 const allowedOrigins = new Set([
   "http://localhost:3000",
-  "https://hackk-track.vercel.app",
+  "https://hack-trackk.vercel.app",
   "https://frontend-eight-umber-62.vercel.app",
 ]);
 
@@ -24,7 +24,7 @@ function isAllowedPreviewOrigin(origin: string): boolean {
     if (!hostname.endsWith(".vercel.app")) return false;
 
     // Allow preview deployments for this project naming pattern.
-    return hostname.startsWith("hackk-track-") || hostname.startsWith("frontend-");
+    return hostname.startsWith("hack-trackk-") || hostname.startsWith("frontend-");
   } catch {
     return false;
   }
