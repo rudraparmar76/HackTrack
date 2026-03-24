@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -118,6 +119,37 @@ type HackathonDeadlineRow = {
   submission_deadline: string | null;
 };
 
+type TeamMemberEmailRow = {
+  hackathon_id: string;
+  email: string | null;
+};
+
+type TeamInviteRow = {
+  id: string;
+  hackathon_id: string;
+  email: string;
+  name: string | null;
+  role: string | null;
+  token: string;
+  status: string;
+  invited_by: string;
+  expires_at: string | null;
+  accepted_at: string | null;
+};
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendDueReminderEmails() {
   if (!resend) {
     return { sent: 0, failed: 0, skipped: 0, reason: "RESEND_API_KEY missing" };
@@ -195,23 +227,56 @@ async function sendDailyDeadlineDigestEmails() {
 
   if (error) throw error;
   const rows = (data || []) as HackathonDeadlineRow[];
+  const hackathonIds = rows.map((row) => row.id);
+  const teamByHackathon = new Map<string, Set<string>>();
+
+  if (hackathonIds.length > 0) {
+    const { data: teamRows, error: teamError } = await supabase
+      .from("team_members")
+      .select("hackathon_id, email")
+      .in("hackathon_id", hackathonIds)
+      .not("email", "is", null);
+
+    if (teamError) throw teamError;
+
+    for (const row of (teamRows || []) as TeamMemberEmailRow[]) {
+      if (!row.email) continue;
+      const emails = teamByHackathon.get(row.hackathon_id) || new Set<string>();
+      emails.add(row.email.toLowerCase());
+      teamByHackathon.set(row.hackathon_id, emails);
+    }
+  }
+
   const grouped = new Map<string, HackathonDeadlineRow[]>();
+  const ownerByEmail = new Map<string, string>();
 
   for (const row of rows) {
-    const current = grouped.get(row.user_id) || [];
-    current.push(row);
-    grouped.set(row.user_id, current);
+    const recipients = new Set<string>();
+    const ownerEmail = await getUserEmail(row.user_id);
+    if (ownerEmail) {
+      const ownerEmailKey = ownerEmail.toLowerCase();
+      recipients.add(ownerEmailKey);
+      ownerByEmail.set(ownerEmailKey, row.user_id);
+    }
+
+    const teammateEmails = teamByHackathon.get(row.id);
+    if (teammateEmails) {
+      for (const memberEmail of teammateEmails) {
+        recipients.add(memberEmail);
+      }
+    }
+
+    for (const recipient of recipients) {
+      const current = grouped.get(recipient) || [];
+      current.push(row);
+      grouped.set(recipient, current);
+    }
   }
 
   let usersEmailed = 0;
   let usersSkipped = 0;
 
-  for (const [userId, hackathons] of grouped.entries()) {
-    const email = await getUserEmail(userId);
-    if (!email) {
-      usersSkipped += 1;
-      continue;
-    }
+  for (const [email, hackathons] of grouped.entries()) {
 
     const listItems = hackathons
       .sort((a, b) => {
@@ -266,15 +331,18 @@ async function sendDailyDeadlineDigestEmails() {
         `,
       });
 
-      await supabase.from("notifications").insert({
-        user_id: userId,
-        message: "Daily deadline digest email sent",
-        read: false,
-      });
+      const ownerId = ownerByEmail.get(email);
+      if (ownerId) {
+        await supabase.from("notifications").insert({
+          user_id: ownerId,
+          message: "Daily deadline digest email sent",
+          read: false,
+        });
+      }
 
       usersEmailed += 1;
     } catch (emailError) {
-      console.error("Daily digest email failed", userId, emailError);
+      console.error("Daily digest email failed", email, emailError);
       usersSkipped += 1;
     }
   }
@@ -298,38 +366,75 @@ async function sendTodayDeadlineAlertEmails() {
 
   if (error) throw error;
   const rows = (data || []) as HackathonDeadlineRow[];
-  const grouped = new Map<string, HackathonDeadlineRow[]>();
-
-  for (const row of rows) {
+  const dueRows = rows.filter((row) => {
     const regDueToday = daysUntil(row.registration_deadline) === 0;
     const subDueToday = daysUntil(row.submission_deadline) === 0;
-    if (!regDueToday && !subDueToday) continue;
+    return regDueToday || subDueToday;
+  });
 
-    const current = grouped.get(row.user_id) || [];
-    current.push(row);
-    grouped.set(row.user_id, current);
+  const dueHackathonIds = dueRows.map((row) => row.id);
+  const teamByHackathon = new Map<string, Set<string>>();
+
+  if (dueHackathonIds.length > 0) {
+    const { data: teamRows, error: teamError } = await supabase
+      .from("team_members")
+      .select("hackathon_id, email")
+      .in("hackathon_id", dueHackathonIds)
+      .not("email", "is", null);
+
+    if (teamError) throw teamError;
+
+    for (const row of (teamRows || []) as TeamMemberEmailRow[]) {
+      if (!row.email) continue;
+      const emails = teamByHackathon.get(row.hackathon_id) || new Set<string>();
+      emails.add(row.email.toLowerCase());
+      teamByHackathon.set(row.hackathon_id, emails);
+    }
+  }
+
+  const grouped = new Map<string, HackathonDeadlineRow[]>();
+  const ownerByEmail = new Map<string, string>();
+
+  for (const row of dueRows) {
+    const recipients = new Set<string>();
+    const ownerEmail = await getUserEmail(row.user_id);
+    if (ownerEmail) {
+      const ownerEmailKey = ownerEmail.toLowerCase();
+      recipients.add(ownerEmailKey);
+      ownerByEmail.set(ownerEmailKey, row.user_id);
+    }
+
+    const teammateEmails = teamByHackathon.get(row.id);
+    if (teammateEmails) {
+      for (const memberEmail of teammateEmails) {
+        recipients.add(memberEmail);
+      }
+    }
+
+    for (const recipient of recipients) {
+      const current = grouped.get(recipient) || [];
+      current.push(row);
+      grouped.set(recipient, current);
+    }
   }
 
   let usersEmailed = 0;
   let usersSkipped = 0;
 
-  for (const [userId, dueHackathons] of grouped.entries()) {
-    const { data: existingNotification } = await supabase
-      .from("notifications")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("message", dedupeTag)
-      .maybeSingle();
+  for (const [email, dueHackathons] of grouped.entries()) {
+    const ownerId = ownerByEmail.get(email);
+    if (ownerId) {
+      const { data: existingNotification } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", ownerId)
+        .eq("message", dedupeTag)
+        .maybeSingle();
 
-    if (existingNotification) {
-      usersSkipped += 1;
-      continue;
-    }
-
-    const email = await getUserEmail(userId);
-    if (!email) {
-      usersSkipped += 1;
-      continue;
+      if (existingNotification) {
+        usersSkipped += 1;
+        continue;
+      }
     }
 
     const listItems = dueHackathons
@@ -365,22 +470,24 @@ async function sendTodayDeadlineAlertEmails() {
         `,
       });
 
-      await supabase.from("notifications").insert([
-        {
-          user_id: userId,
-          message: dedupeTag,
-          read: true,
-        },
-        {
-          user_id: userId,
-          message: `Deadline alert email sent for ${todayKey}`,
-          read: false,
-        },
-      ]);
+      if (ownerId) {
+        await supabase.from("notifications").insert([
+          {
+            user_id: ownerId,
+            message: dedupeTag,
+            read: true,
+          },
+          {
+            user_id: ownerId,
+            message: `Deadline alert email sent for ${todayKey}`,
+            read: false,
+          },
+        ]);
+      }
 
       usersEmailed += 1;
     } catch (emailError) {
-      console.error("Today deadline alert email failed", userId, emailError);
+      console.error("Today deadline alert email failed", email, emailError);
       usersSkipped += 1;
     }
   }
@@ -577,6 +684,194 @@ app.post("/api/hackathons/:id/team", async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
+});
+
+app.get("/api/team-invites/:token", async (req, res) => {
+  const token = req.params.token;
+  if (!token) return res.status(400).json({ error: "Token is required" });
+
+  const { data, error } = await supabase
+    .from("team_invites")
+    .select("id, email, role, status, expires_at, hackathon_id, hackathons(name)")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (error || !data) return res.status(404).json({ error: "Invite not found" });
+
+  const isExpired = data.expires_at ? new Date(data.expires_at).getTime() < Date.now() : false;
+  res.json({
+    id: data.id,
+    email: data.email,
+    role: data.role,
+    status: data.status,
+    expires_at: data.expires_at,
+    is_expired: isExpired,
+    hackathon_id: data.hackathon_id,
+    hackathon_name: data.hackathons?.[0]?.name || "Hackathon",
+  });
+});
+
+app.post("/api/hackathons/:id/invites", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const hackathonId = req.params.id;
+  const emailRaw = String(req.body?.email || "").trim().toLowerCase();
+  const role = String(req.body?.role || "Member").trim();
+  const name = req.body?.name ? String(req.body.name).trim() : null;
+
+  if (!isValidEmail(emailRaw)) {
+    return res.status(400).json({ error: "Valid email is required" });
+  }
+
+  const { data: hackathon, error: hackathonError } = await supabase
+    .from("hackathons")
+    .select("id, name, user_id")
+    .eq("id", hackathonId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (hackathonError || !hackathon) {
+    return res.status(404).json({ error: "Hackathon not found" });
+  }
+
+  const { data: existingMember } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("hackathon_id", hackathonId)
+    .eq("email", emailRaw)
+    .maybeSingle();
+
+  if (existingMember) {
+    return res.status(409).json({ error: "This email is already a team member" });
+  }
+
+  const { data: existingInvite } = await supabase
+    .from("team_invites")
+    .select("id")
+    .eq("hackathon_id", hackathonId)
+    .eq("email", emailRaw)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (existingInvite) {
+    return res.status(409).json({ error: "A pending invite already exists for this email" });
+  }
+
+  const token = crypto.randomBytes(24).toString("hex");
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from("team_invites")
+    .insert({
+      hackathon_id: hackathonId,
+      email: emailRaw,
+      name,
+      role,
+      token,
+      status: "pending",
+      invited_by: user.id,
+      expires_at: expiresAt,
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  if (resend) {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const inviteUrl = `${frontendUrl}/invite/accept?token=${token}`;
+    const safeHackathonName = escapeHtml(hackathon.name || "Hackathon");
+    const safeInviterName = escapeHtml((user.user_metadata?.full_name as string) || (user.user_metadata?.name as string) || user.email || "Your teammate");
+
+    try {
+      await resend.emails.send({
+        from: resendFrom,
+        to: emailRaw,
+        subject: `You're invited to join ${hackathon.name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+            <h2 style="margin-bottom: 8px;">HackTrack Team Invite</h2>
+            <p style="margin: 0 0 8px 0;"><strong>${safeInviterName}</strong> invited you to join <strong>${safeHackathonName}</strong>.</p>
+            <p style="margin: 0 0 14px 0;">Role: <strong>${escapeHtml(role)}</strong></p>
+            <a href="${inviteUrl}" style="display: inline-block; padding: 10px 14px; background: #00FF87; color: #111; text-decoration: none; border-radius: 8px; font-weight: 600;">Accept Invite</a>
+            <p style="margin-top: 12px; color: #555; font-size: 12px;">This invite expires in 7 days.</p>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Team invite email failed", emailError);
+    }
+  }
+
+  res.json(data);
+});
+
+app.post("/api/team-invites/accept", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const token = String(req.body?.token || "").trim();
+  if (!token) return res.status(400).json({ error: "Token is required" });
+
+  const { data: invite, error: inviteError } = await supabase
+    .from("team_invites")
+    .select("*")
+    .eq("token", token)
+    .single();
+
+  if (inviteError || !invite) return res.status(404).json({ error: "Invite not found" });
+
+  const inviteRow = invite as TeamInviteRow;
+  if (inviteRow.status !== "pending") return res.status(409).json({ error: "Invite already processed" });
+  if (inviteRow.expires_at && new Date(inviteRow.expires_at).getTime() < Date.now()) {
+    return res.status(410).json({ error: "Invite expired" });
+  }
+
+  const authEmail = (user.email || "").toLowerCase();
+  if (!authEmail || authEmail !== inviteRow.email.toLowerCase()) {
+    return res.status(403).json({ error: "Sign in with the invited email to accept this invite" });
+  }
+
+  const { data: existingMember } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("hackathon_id", inviteRow.hackathon_id)
+    .eq("email", authEmail)
+    .maybeSingle();
+
+  if (!existingMember) {
+    const fallbackName =
+      inviteRow.name ||
+      (user.user_metadata?.full_name as string) ||
+      (user.user_metadata?.name as string) ||
+      authEmail.split("@")[0];
+
+    const { error: memberError } = await supabase.from("team_members").insert({
+      hackathon_id: inviteRow.hackathon_id,
+      name: fallbackName,
+      email: authEmail,
+      role: inviteRow.role || "Member",
+    });
+
+    if (memberError) return res.status(500).json({ error: memberError.message });
+  }
+
+  const { error: updateError } = await supabase
+    .from("team_invites")
+    .update({ status: "accepted", accepted_at: new Date().toISOString(), accepted_user_id: user.id })
+    .eq("id", inviteRow.id);
+
+  if (updateError) return res.status(500).json({ error: updateError.message });
+
+  await supabase.from("notifications").insert({
+    user_id: inviteRow.invited_by,
+    hackathon_id: inviteRow.hackathon_id,
+    message: `${authEmail} accepted your team invite`,
+    read: false,
+  });
+
+  res.json({ success: true, hackathon_id: inviteRow.hackathon_id });
 });
 
 // ============ REMINDERS ============

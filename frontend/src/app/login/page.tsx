@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,20 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
   const { toast } = useToast();
+  const [nextPath, setNextPath] = useState("/dashboard");
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next");
+    if (next) {
+      setNextPath(next);
+    }
+  }, []);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +46,7 @@ export default function LoginPage() {
         if (error) throw error;
         toast({ title: "Account created!", description: "Please check your email to verify your account." });
       }
-      router.push("/dashboard");
+      router.push(nextPath);
       router.refresh();
     } catch (error: any) {
       toast({
@@ -53,7 +62,7 @@ export default function LoginPage() {
   const handleGoogleAuth = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}` },
     });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });

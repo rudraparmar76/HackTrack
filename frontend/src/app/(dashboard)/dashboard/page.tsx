@@ -44,6 +44,8 @@ interface Hackathon {
   team_size_max: number | null;
   status: string;
   created_at: string;
+  user_id: string;
+  is_shared?: boolean;
   team_members?: { id: string; name: string }[];
 }
 
@@ -69,15 +71,46 @@ export default function DashboardPage() {
   const fetchHackathons = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setHackathons([]);
+      setLoading(false);
+      return;
+    }
 
-    const { data: hacks } = await supabase
+    const { data: ownedHacks } = await supabase
       .from("hackathons")
       .select("*, team_members(id, name)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    setHackathons(hacks || []);
+    const owned = (ownedHacks || []).map((hack) => ({ ...hack, is_shared: false }));
+    const shared: Hackathon[] = [];
+
+    if (user.email) {
+      const { data: teamMemberships } = await supabase
+        .from("team_members")
+        .select("hackathon_id")
+        .eq("email", user.email.toLowerCase());
+
+      const sharedIds = (teamMemberships || [])
+        .map((row: { hackathon_id: string }) => row.hackathon_id)
+        .filter((id: string) => Boolean(id));
+
+      const ownedIdSet = new Set(owned.map((hack) => hack.id));
+      const uniqueSharedIds = Array.from(new Set(sharedIds)).filter((id) => !ownedIdSet.has(id));
+
+      if (uniqueSharedIds.length > 0) {
+        const { data: sharedHacks } = await supabase
+          .from("hackathons")
+          .select("*, team_members(id, name)")
+          .in("id", uniqueSharedIds)
+          .order("created_at", { ascending: false });
+
+        shared.push(...(sharedHacks || []).map((hack) => ({ ...hack, is_shared: true })));
+      }
+    }
+
+    setHackathons([...owned, ...shared]);
     setLoading(false);
   };
 
@@ -244,6 +277,11 @@ export default function DashboardPage() {
                       {hack.platform && (
                         <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-medium ${getPlatformColor(hack.platform)}`}>
                           {hack.platform}
+                        </div>
+                      )}
+                      {hack.is_shared && (
+                        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium bg-[#00D4FF]/15 text-[#00D4FF] border border-[#00D4FF]/20">
+                          Shared
                         </div>
                       )}
                     </div>

@@ -72,6 +72,7 @@ export default function NewHackathonPage() {
   const [status, setStatus] = useState("upcoming");
   const [problemStatements, setProblemStatements] = useState<{ track: string; title: string }[]>([]);
   const [resourceLinks, setResourceLinks] = useState<{ text: string; url: string; type: string }[]>([]);
+  const [inviteEmails, setInviteEmails] = useState("");
 
   const handleScrape = async () => {
     if (!url.trim()) return;
@@ -165,6 +166,40 @@ export default function NewHackathonPage() {
             track: ps.track,
           }))
         );
+      }
+
+      const inviteList = inviteEmails
+        .split(/[\n,]/)
+        .map((item) => item.trim().toLowerCase())
+        .filter(Boolean);
+
+      if (inviteList.length > 0 && hack) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+        if (token) {
+          const inviteResults = await Promise.allSettled(
+            inviteList.map((email) =>
+              fetch(`${apiUrl}/api/hackathons/${hack.id}/invites`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ email, role: "Member" }),
+              })
+            )
+          );
+
+          const successfulInvites = inviteResults.filter((result) => result.status === "fulfilled").length;
+          if (successfulInvites > 0) {
+            toast({
+              title: "Team invites sent",
+              description: `${successfulInvites} teammate(s) were invited by email.`,
+            });
+          }
+        }
       }
 
       toast({ title: "Hackathon added!", description: `${name} has been added to your dashboard.` });
@@ -341,6 +376,17 @@ export default function NewHackathonPage() {
               <Input type="number" value={teamMax} onChange={(e) => setTeamMax(e.target.value)} min="1" className="font-mono" />
             </div>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm">Invite Teammates by Email (optional)</Label>
+          <Textarea
+            value={inviteEmails}
+            onChange={(e) => setInviteEmails(e.target.value)}
+            placeholder="teammate1@email.com, teammate2@email.com"
+            rows={3}
+          />
+          <p className="text-xs text-[#7A8099]">Comma or new line separated. Invite emails are sent after save.</p>
         </div>
 
         {/* Problem Statements */}

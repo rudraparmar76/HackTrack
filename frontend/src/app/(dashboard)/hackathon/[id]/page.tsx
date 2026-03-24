@@ -54,6 +54,14 @@ interface TeamMember {
   id: string; name: string; email: string | null; role: string;
 }
 
+interface TeamInvite {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  created_at?: string;
+}
+
 interface Task {
   id: string; title: string; description: string | null;
   status: string; priority: string; due_date: string | null;
@@ -90,6 +98,8 @@ export default function HackathonDetailPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [problems, setProblems] = useState<ProblemStatement[]>([]);
   const [note, setNote] = useState<Note | null>(null);
+  const [invites, setInvites] = useState<TeamInvite[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Dialogs
@@ -106,27 +116,66 @@ export default function HackathonDetailPage() {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [hackRes, teamRes, taskRes, psRes, noteRes] = await Promise.all([
-      supabase.from("hackathons").select("*").eq("id", hackathonId).single(),
+    const { data: authData } = await supabase.auth.getUser();
+    const currentUser = authData.user;
+    if (!currentUser) {
+      router.push("/login");
+      return;
+    }
+
+    const hackRes = await supabase.from("hackathons").select("*").eq("id", hackathonId).single();
+    if (!hackRes.data) {
+      setHackathon(null);
+      setLoading(false);
+      return;
+    }
+
+    const ownerAccess = hackRes.data.user_id === currentUser.id;
+    let memberAccess = false;
+    if (!ownerAccess && currentUser.email) {
+      const membership = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("hackathon_id", hackathonId)
+        .eq("email", currentUser.email.toLowerCase())
+        .maybeSingle();
+      memberAccess = Boolean(membership.data);
+    }
+
+    if (!ownerAccess && !memberAccess) {
+      toast({ title: "Access denied", description: "You are not part of this hackathon team.", variant: "destructive" });
+      router.push("/dashboard");
+      return;
+    }
+
+    setIsOwner(ownerAccess);
+
+    const [teamRes, taskRes, psRes, noteRes, inviteRes] = await Promise.all([
       supabase.from("team_members").select("*").eq("hackathon_id", hackathonId),
       supabase.from("tasks").select("*").eq("hackathon_id", hackathonId).order("position"),
       supabase.from("problem_statements").select("*").eq("hackathon_id", hackathonId),
       supabase.from("notes").select("*").eq("hackathon_id", hackathonId).limit(1),
+      ownerAccess
+        ? supabase.from("team_invites").select("id, email, role, status, created_at").eq("hackathon_id", hackathonId).eq("status", "pending")
+        : Promise.resolve({ data: [], error: null } as any),
     ]);
+
     setHackathon(hackRes.data);
     setTeam(teamRes.data || []);
     setTasks(taskRes.data || []);
     setProblems(psRes.data || []);
+    setInvites((inviteRes.data || []) as TeamInvite[]);
     if (noteRes.data && noteRes.data.length > 0) {
       setNote(noteRes.data[0]);
       setNoteContent(noteRes.data[0].content);
     }
     setLoading(false);
-  }, [hackathonId]);
+  }, [hackathonId, router, toast]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const handleDelete = async () => {
+    if (!isOwner) return;
     if (!confirm("Delete this hackathon? This cannot be undone.")) return;
     await supabase.from("hackathons").delete().eq("id", hackathonId);
     toast({ title: "Deleted", description: "Hackathon has been removed." });
@@ -134,6 +183,7 @@ export default function HackathonDetailPage() {
   };
 
   const addTeamMember = async () => {
+    if (!isOwner) return;
     if (!newMemberName.trim()) return;
     const maxSize = hackathon?.team_size_max || 4;
     if (team.length >= maxSize) {
@@ -144,19 +194,59 @@ export default function HackathonDetailPage() {
       });
       return;
     }
-    await supabase.from("team_members").insert({
-      hackathon_id: hackathonId,
-      name: newMemberName,
-      email: newMemberEmail || null,
-      role: newMemberRole,
-    });
+
+    const trimmedEmail = newMemberEmail.trim().toLowerCase();
+    if (trimmedEmail) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+      if (!token) {
+        toast({ title: "Session expired", description: "Please sign in again.", variant: "destructive" });
+        return;
+      }
+
+      const response = await fetch(`${apiUrl}/api/hackathons/${hackathonId}/invites`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          name: newMemberName,
+          role: newMemberRole,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        toast({
+          title: "Invite failed",
+          description: payload.error || "Could not send team invite.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({ title: "Invite sent", description: `Invite email sent to ${trimmedEmail}.` });
+    } else {
+      await supabase.from("team_members").insert({
+        hackathon_id: hackathonId,
+        name: newMemberName,
+        email: null,
+        role: newMemberRole,
+      });
+      toast({ title: "Member added" });
+    }
+
     setNewMemberName(""); setNewMemberEmail(""); setNewMemberRole("Developer");
     setShowAddMember(false);
     fetchAll();
-    toast({ title: "Member added" });
   };
 
   const removeMember = async (id: string) => {
+    if (!isOwner) return;
     await supabase.from("team_members").delete().eq("id", id);
     fetchAll();
   };
@@ -253,9 +343,11 @@ export default function HackathonDetailPage() {
             )}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-400 border-red-500/20 hover:bg-red-500/10 gap-1">
-          <Trash2 className="w-3.5 h-3.5" /> Delete
-        </Button>
+        {isOwner && (
+          <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-400 border-red-500/20 hover:bg-red-500/10 gap-1">
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </Button>
+        )}
       </div>
 
       {/* Countdown Bar */}
@@ -375,10 +467,10 @@ export default function HackathonDetailPage() {
                 <Button
                   size="sm"
                   className="gap-1"
-                  disabled={team.length >= (hackathon?.team_size_max || 4)}
+                  disabled={!isOwner || team.length >= (hackathon?.team_size_max || 4)}
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  {team.length >= (hackathon?.team_size_max || 4) ? 'Team Full' : 'Add Member'}
+                  {!isOwner ? 'Owner Only' : team.length >= (hackathon?.team_size_max || 4) ? 'Team Full' : 'Add Member'}
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -390,7 +482,7 @@ export default function HackathonDetailPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Email</Label>
-                    <Input value={newMemberEmail} onChange={(e) => setNewMemberEmail(e.target.value)} placeholder="member@email.com" />
+                    <Input value={newMemberEmail} onChange={(e) => setNewMemberEmail(e.target.value)} placeholder="member@email.com (sends invite)" />
                   </div>
                   <div className="space-y-2">
                     <Label>Role</Label>
@@ -401,7 +493,7 @@ export default function HackathonDetailPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={addTeamMember} className="w-full">Add Member</Button>
+                  <Button onClick={addTeamMember} className="w-full">Save Member</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -423,11 +515,29 @@ export default function HackathonDetailPage() {
                     <p className="font-medium text-sm text-[#E8EAF0] truncate">{m.name}</p>
                     <p className="text-xs text-[#7A8099]">{m.role}</p>
                   </div>
-                  <button onClick={() => removeMember(m.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {isOwner && (
+                    <button onClick={() => removeMember(m.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {invites.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-[#7A8099] mb-2">Pending Invites</h4>
+              <div className="space-y-2">
+                {invites.map((invite) => (
+                  <div key={invite.id} className="bg-[#151820] rounded-lg border border-[#1E2330] px-3 py-2 text-sm flex items-center justify-between">
+                    <div>
+                      <p className="text-[#E8EAF0]">{invite.email}</p>
+                      <p className="text-[#7A8099] text-xs">{invite.role || "Member"} • Pending</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </TabsContent>
