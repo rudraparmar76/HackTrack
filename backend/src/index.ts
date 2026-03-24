@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const resendFrom = process.env.RESEND_FROM_EMAIL || "HackTrack <onboarding@resend.dev>";
+const resendFrom = process.env.RESEND_FROM_EMAIL || "HackTrack <onboarding@hacktrack.dev>";
 
 const allowedOrigins = new Set([
   "http://localhost:3000",
