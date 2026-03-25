@@ -778,8 +778,8 @@ app.post("/api/hackathons/:id/invites", async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
 
   if (resend) {
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+    const frontendUrl = process.env.FRONTEND_URL || "https://www.hack-track.tech";
+    // console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
     const inviteUrl = `${frontendUrl}/invite/accept?token=${token}`;
     const safeHackathonName = escapeHtml(hackathon.name || "Hackathon");
     const safeInviterName = escapeHtml((user.user_metadata?.full_name as string) || (user.user_metadata?.name as string) || user.email || "Your teammate");
