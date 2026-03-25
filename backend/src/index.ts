@@ -167,32 +167,74 @@ async function sendDueReminderEmails() {
   if (error) throw error;
   const reminders = (data || []) as ReminderRow[];
 
+  // Pre-fetch team member emails for all hackathons in due reminders
+  const reminderHackathonIds = [...new Set(reminders.map((r) => r.hackathon_id).filter(Boolean))] as string[];
+  const teamByHackathon = new Map<string, Set<string>>();
+  if (reminderHackathonIds.length > 0) {
+    const { data: teamRows, error: teamError } = await supabase
+      .from("team_members")
+      .select("hackathon_id, email")
+      .in("hackathon_id", reminderHackathonIds)
+      .not("email", "is", null);
+    if (!teamError) {
+      for (const row of (teamRows || []) as TeamMemberEmailRow[]) {
+        if (!row.email) continue;
+        const emails = teamByHackathon.get(row.hackathon_id) || new Set<string>();
+        emails.add(row.email.toLowerCase());
+        teamByHackathon.set(row.hackathon_id, emails);
+      }
+    }
+  }
+
   let sent = 0;
   let failed = 0;
   let skipped = 0;
 
   for (const reminder of reminders) {
-    const email = await getUserEmail(reminder.user_id);
-    if (!email) {
+    const ownerEmail = await getUserEmail(reminder.user_id);
+
+    // Collect all recipients: owner + team members
+    const recipients = new Set<string>();
+    if (ownerEmail) recipients.add(ownerEmail.toLowerCase());
+    if (reminder.hackathon_id) {
+      const teammateEmails = teamByHackathon.get(reminder.hackathon_id);
+      if (teammateEmails) {
+        for (const memberEmail of teammateEmails) {
+          recipients.add(memberEmail);
+        }
+      }
+    }
+
+    if (recipients.size === 0) {
       skipped += 1;
       continue;
     }
 
     try {
       const hackathonName = reminder.hackathons?.[0]?.name || "Your Hackathon";
-      await resend.emails.send({
-        from: resendFrom,
-        to: email,
-        subject: `Deadline Reminder: ${hackathonName}`,
-        html: `
+      const emailHtml = `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
             <h2 style="margin-bottom: 8px;">HackTrack Reminder</h2>
             <p style="margin: 0 0 8px 0;"><strong>${hackathonName}</strong></p>
             <p style="margin: 0 0 8px 0;">${reminder.message}</p>
             <p style="margin: 0; color: #555;">Scheduled at: ${formatDeadline(reminder.remind_at)}</p>
           </div>
-        `,
-      });
+        `;
+
+      for (const recipientEmail of recipients) {
+        try {
+          await resend.emails.send({
+            from: resendFrom,
+            to: recipientEmail,
+            subject: `Deadline Reminder: ${hackathonName}`,
+            html: emailHtml,
+          });
+          sent += 1;
+        } catch (emailError) {
+          console.error("Reminder email send failed", reminder.id, recipientEmail, emailError);
+          failed += 1;
+        }
+      }
 
       await supabase.from("reminders").update({ sent: true }).eq("id", reminder.id);
 
@@ -202,10 +244,8 @@ async function sendDueReminderEmails() {
         message: `Email reminder sent: ${reminder.message}`,
         read: false,
       });
-
-      sent += 1;
-    } catch (emailError) {
-      console.error("Reminder email send failed", reminder.id, emailError);
+    } catch (outerError) {
+      console.error("Reminder processing failed", reminder.id, outerError);
       failed += 1;
     }
   }
@@ -544,14 +584,43 @@ app.get("/api/hackathons", async (req, res) => {
   const user = await getUserFromToken(req.headers.authorization);
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  const { data, error } = await supabase
+  // Fetch hackathons owned by the user
+  const { data: ownedData, error: ownedError } = await supabase
     .from("hackathons")
     .select("*, team_members(id, name), problem_statements(*)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  if (ownedError) return res.status(500).json({ error: ownedError.message });
+
+  const owned = ownedData || [];
+  const ownedIds = new Set(owned.map((h: any) => h.id));
+
+  // Also fetch hackathons where the user is a team member
+  let shared: any[] = [];
+  if (user.email) {
+    const { data: memberships } = await supabase
+      .from("team_members")
+      .select("hackathon_id")
+      .eq("email", user.email.toLowerCase());
+
+    const sharedIds = (memberships || [])
+      .map((r: any) => r.hackathon_id)
+      .filter((id: string) => id && !ownedIds.has(id));
+
+    const uniqueSharedIds = [...new Set(sharedIds)] as string[];
+
+    if (uniqueSharedIds.length > 0) {
+      const { data: sharedData } = await supabase
+        .from("hackathons")
+        .select("*, team_members(id, name), problem_statements(*)")
+        .in("id", uniqueSharedIds)
+        .order("created_at", { ascending: false });
+      shared = sharedData || [];
+    }
+  }
+
+  res.json([...owned, ...shared]);
 });
 
 app.post("/api/hackathons", async (req, res) => {
@@ -576,10 +645,29 @@ app.get("/api/hackathons/:id", async (req, res) => {
     .from("hackathons")
     .select("*, team_members(*), problem_statements(*), tasks(*), notes(*)")
     .eq("id", req.params.id)
-    .eq("user_id", user.id)
     .single();
 
-  if (error) return res.status(404).json({ error: "Not found" });
+  if (error || !data) return res.status(404).json({ error: "Not found" });
+
+  // Allow access if user is the owner
+  const isOwner = data.user_id === user.id;
+
+  // Or if user is a team member
+  let isMember = false;
+  if (!isOwner && user.email) {
+    const { data: membership } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("hackathon_id", req.params.id)
+      .eq("email", user.email.toLowerCase())
+      .maybeSingle();
+    isMember = Boolean(membership);
+  }
+
+  if (!isOwner && !isMember) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
   res.json(data);
 });
 
@@ -721,6 +809,12 @@ app.post("/api/hackathons/:id/invites", async (req, res) => {
 
   if (!isValidEmail(emailRaw)) {
     return res.status(400).json({ error: "Valid email is required" });
+  }
+
+  // Prevent owner from inviting themselves
+  const ownerEmail = (user.email || "").toLowerCase();
+  if (emailRaw === ownerEmail) {
+    return res.status(400).json({ error: "You cannot invite yourself to your own team" });
   }
 
   const { data: hackathon, error: hackathonError } = await supabase

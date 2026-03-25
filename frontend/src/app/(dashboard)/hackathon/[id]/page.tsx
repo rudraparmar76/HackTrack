@@ -197,6 +197,17 @@ export default function HackathonDetailPage() {
 
     const trimmedEmail = newMemberEmail.trim().toLowerCase();
     if (trimmedEmail) {
+      // Prevent self-invite
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser?.email && trimmedEmail === currentUser.email.toLowerCase()) {
+        toast({
+          title: "Cannot invite yourself",
+          description: "You are already part of this team.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
