@@ -28,6 +28,7 @@
     "@tiptap/pm": "^2.5.0",
     "@tiptap/react": "^2.5.0",
     "@tiptap/starter-kit": "^2.5.0",
+    "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",
