@@ -20,11 +20,13 @@ import {
   LogOut,
   Plus,
   Terminal,
+  Sparkles,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/discover", label: "Discover", icon: Sparkles },
   { href: "/reminders", label: "Reminders", icon: Clock },
   { href: "/notifications", label: "Alerts", icon: Bell },
   { href: "/settings", label: "Settings", icon: Settings },

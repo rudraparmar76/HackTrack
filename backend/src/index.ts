@@ -1040,6 +1040,128 @@ app.patch("/api/notifications/read-all", async (req, res) => {
   res.json({ success: true });
 });
 
+// ============ PUBLIC HACKATHON DISCOVERY ============
+app.get("/api/public/hackathons", async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const offset = (page - 1) * limit;
+
+    const platform = (req.query.platform as string)?.trim();
+    const status = (req.query.status as string)?.trim() || "open";
+    const search = (req.query.search as string)?.trim();
+    const sort = (req.query.sort as string)?.trim() || "newest";
+
+    let query = supabase
+      .from("public_hackathons")
+      .select("id, name, platform, banner_url, description, start_date, end_date, registration_deadline, prize_pool, tags, source_url, status", { count: "exact" })
+      .eq("is_public", true);
+
+    if (status) query = query.eq("status", status);
+    if (platform) query = query.ilike("platform", platform);
+    if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+
+    // Sorting
+    switch (sort) {
+      case "deadline":
+        query = query.order("registration_deadline", { ascending: true, nullsFirst: false });
+        break;
+      case "prize":
+        query = query.order("prize_pool", { ascending: false, nullsFirst: false });
+        break;
+      case "newest":
+      default:
+        query = query.order("scraped_at", { ascending: false });
+        break;
+    }
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({
+      hackathons: data || [],
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit),
+      },
+    });
+  } catch (err: any) {
+    console.error("Public hackathons error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Cron: Scrape hackathons from all platforms and upsert into public_hackathons
+app.all("/api/cron/scrape-hackathons", async (req, res) => {
+  if (!isCronAuthorized(req)) return res.status(401).json({ error: "Unauthorized cron request" });
+
+  try {
+    const scraperUrl = process.env.SCRAPER_URL;
+    if (!scraperUrl) return res.status(500).json({ error: "SCRAPER_URL not configured" });
+
+    const response = await fetch(`${scraperUrl}/crawl/all`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(120000), // 2 min timeout for crawling
+    });
+
+    const crawlData: any = await response.json();
+    const hackathons = crawlData.hackathons || [];
+
+    let upserted = 0;
+    let failed = 0;
+
+    for (const h of hackathons) {
+      const row: Record<string, any> = {
+        name: h.name,
+        platform: h.platform || null,
+        banner_url: h.banner_url || null,
+        description: h.description || null,
+        prize_pool: h.prize_pool || null,
+        tags: h.tags || [],
+        source_url: h.source_url,
+        status: h.status || "open",
+        is_public: true,
+        scraped_at: new Date().toISOString(),
+      };
+
+      if (h.start_date) row.start_date = h.start_date;
+      if (h.end_date) row.end_date = h.end_date;
+      if (h.registration_deadline) row.registration_deadline = h.registration_deadline;
+
+      const { error } = await supabase
+        .from("public_hackathons")
+        .upsert(row, { onConflict: "source_url" });
+
+      if (error) {
+        console.error("Upsert failed:", h.source_url, error.message);
+        failed += 1;
+      } else {
+        upserted += 1;
+      }
+    }
+
+    res.json({
+      ok: true,
+      job: "scrape-hackathons",
+      result: {
+        crawled: hackathons.length,
+        upserted,
+        failed,
+        by_platform: crawlData.by_platform || {},
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    console.error("Cron scrape-hackathons failed", error);
+    res.status(500).json({ ok: false, job: "scrape-hackathons", error: error.message || "Unknown error" });
+  }
+});
+
 // ============ EMAIL CRON JOBS ============
 app.all("/api/cron/reminder-dispatch", async (req, res) => {
   if (!isCronAuthorized(req)) return res.status(401).json({ error: "Unauthorized cron request" });

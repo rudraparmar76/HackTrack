@@ -86,11 +86,18 @@ export default function LandingPage() {
               Hack<span className="text-[#00FF87]">Track</span>
             </span>
           </div>
-          <Link href="/login">
-            <Button variant="outline" className="border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
-              Sign In
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/discover">
+              <Button variant="outline" className="border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
+                Browse Hackathons
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="outline" className="border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
+                Sign In
+              </Button>
+            </Link>
+          </div>
         </nav>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32 text-center">
@@ -121,15 +128,44 @@ export default function LandingPage() {
                   Get Started Free <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              <Link href="#features">
-                <Button variant="outline" size="lg" className="text-base px-8 h-12 border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
-                  See Features
+              <Link href="/discover">
+                <Button variant="outline" size="lg" className="text-base px-8 h-12 gap-2 border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
+                  <Sparkles className="w-5 h-5 text-[#00D4FF]" /> Discover Hackathons
                 </Button>
               </Link>
             </div>
           </motion.div>
         </div>
       </header>
+
+      {/* Discover Section */}
+      <section className="relative py-16 border-t border-[#1E2330]">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#00D4FF]/[0.02] to-transparent pointer-events-none" />
+        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00D4FF]/10 border border-[#00D4FF]/20 text-[#00D4FF] text-xs font-medium mb-5">
+              <Sparkles className="w-3.5 h-3.5" />
+              NEW
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#E8EAF0] mb-3">
+              Explore <span className="text-[#00D4FF]">Live Hackathons</span>
+            </h2>
+            <p className="text-[#7A8099] text-base max-w-lg mx-auto mb-8">
+              We automatically scrape Devfolio, DevPost, Unstop & more so you can browse and track open hackathons — no searching required.
+            </p>
+            <Link href="/discover">
+              <Button size="lg" className="text-base px-8 h-12 gap-2 bg-[#00D4FF]/10 hover:bg-[#00D4FF]/20 text-[#00D4FF] border border-[#00D4FF]/20 font-semibold transition-all">
+                Browse All Hackathons <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Features Section */}
       <section id="features" className="relative py-24 border-t border-[#1E2330]">

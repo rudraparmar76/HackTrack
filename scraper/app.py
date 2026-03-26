@@ -540,3 +540,356 @@ async def scrape(request: ScrapeRequest):
         return ScrapeResponse(platform=platform, url=url, scrape_success=False)
 
 
+# ============================================================
+# LISTING PAGE CRAWLERS — for discovery / public_hackathons
+# ============================================================
+
+class CrawledHackathon(BaseModel):
+    name: str = ""
+    platform: str = ""
+    banner_url: str = ""
+    description: str = ""
+    start_date: str = ""
+    end_date: str = ""
+    registration_deadline: str = ""
+    prize_pool: str = ""
+    tags: List[str] = Field(default_factory=list)
+    source_url: str = ""
+    status: str = "open"
+
+
+class CrawlResponse(BaseModel):
+    platform: str
+    count: int = 0
+    hackathons: List[CrawledHackathon] = Field(default_factory=list)
+    error: str = ""
+
+
+DEVFOLIO_EXTRACT = """() => {
+    // Devfolio uses subdomain links like https://code-recet-3.devfolio.co/
+    const allLinks = document.querySelectorAll('a[href*=".devfolio.co"]');
+    const results = [];
+    const seen = new Set();
+
+    // Also grab any links that contain h3 tags (hackathon card pattern)
+    const h3Links = document.querySelectorAll('a:has(h3)');
+    const combined = new Set([...allLinks, ...h3Links]);
+
+    combined.forEach(card => {
+        try {
+            const href = card.href || '';
+            if (!href || seen.has(href)) return;
+
+            // Skip non-hackathon links
+            const hostname = new URL(href).hostname;
+            if (hostname === 'devfolio.co' || hostname === 'www.devfolio.co') return;
+            if (!hostname.endsWith('.devfolio.co')) return;
+            // Skip common non-hackathon subdomains
+            if (['api', 'docs', 'blog', 'app'].some(s => hostname.startsWith(s + '.'))) return;
+
+            seen.add(href);
+
+            const nameEl = card.querySelector('h3, h2, [class*="name"], [class*="title"]');
+            const name = nameEl ? nameEl.textContent.trim() : '';
+            if (!name || name.length < 3) return;
+
+            // Walk up to the card container to find banner and other data
+            const container = card.closest('div') || card.parentElement?.closest('div') || card;
+
+            const imgEl = container.querySelector('img') || card.querySelector('img');
+            const banner = imgEl ? (imgEl.src || imgEl.getAttribute('data-src') || '') : '';
+
+            const descEl = container.querySelector('p') || card.querySelector('p');
+            const description = descEl ? descEl.textContent.trim().substring(0, 500) : '';
+
+            const allText = (container.textContent || card.textContent || '');
+
+            // Extract prize
+            let prize = '';
+            const prizeMatch = allText.match(/[\u20B9$\u20AC\u00A3]\s*[\d,]+(?:\.\d+)?(?:\s*(?:Lakhs?|Lacs?|Crores?|K|k|L|M))?/);
+            if (prizeMatch) prize = prizeMatch[0].trim();
+
+            // Extract dates like "Mar 25 - 27, 2026" or "Runs from ..."
+            let startDate = '';
+            let endDate = '';
+            const dateMatch = allText.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2})(?:\s*[-\u2013]\s*(\d{1,2}))?(?:[,\s]+(\d{4}))?/i);
+            if (dateMatch) {
+                const year = dateMatch[3] || new Date().getFullYear().toString();
+                startDate = dateMatch[1] + ' ' + year;
+                if (dateMatch[2]) {
+                    const month = dateMatch[1].split(/\s+/)[0];
+                    endDate = month + ' ' + dateMatch[2] + ' ' + year;
+                }
+            }
+
+            // Extract tags from spans/badges
+            const tags = [];
+            const tagEls = container.querySelectorAll('span, [class*="tag"], [class*="badge"], [class*="chip"], [class*="Pill"]');
+            tagEls.forEach(el => {
+                const t = el.textContent.trim();
+                if (t && t.length > 1 && t.length < 50 && !t.includes('\u20B9') && !t.includes('$') && t !== name) {
+                    tags.push(t);
+                }
+            });
+
+            results.push({
+                name,
+                source_url: href,
+                banner_url: banner,
+                description,
+                prize_pool: prize,
+                start_date: startDate,
+                end_date: endDate,
+                tags: [...new Set(tags)].slice(0, 10),
+            });
+        } catch(e) {}
+    });
+
+    return results;
+}"""
+
+
+DEVPOST_EXTRACT = """() => {
+    const cards = document.querySelectorAll('.hackathon-tile, a[data-hackathon-slug], [class*="hackathon"]');
+    const results = [];
+    const seen = new Set();
+
+    // Fallback: also try generic link approach
+    const allLinks = document.querySelectorAll('a[href*="devpost.com/hackathons/"]');
+    const combined = [...cards, ...allLinks];
+
+    combined.forEach(card => {
+        try {
+            let href = card.href || card.querySelector('a')?.href || '';
+            if (!href.startsWith('http')) {
+                const aEl = card.closest('a') || card.querySelector('a');
+                if (aEl) href = aEl.href;
+            }
+            if (!href || seen.has(href)) return;
+            if (href.endsWith('/hackathons') || href.endsWith('/hackathons/')) return;
+            seen.add(href);
+
+            const nameEl = card.querySelector('h2, h3, .title, [class*="title"], [class*="name"]');
+            const name = nameEl ? nameEl.textContent.trim() : (card.textContent || '').split('\\n')[0].trim().substring(0, 100);
+            if (!name || name.length < 3) return;
+
+            const imgEl = card.querySelector('img');
+            const banner = imgEl ? (imgEl.src || '') : '';
+
+            const descEl = card.querySelector('.tagline, .description, p');
+            const description = descEl ? descEl.textContent.trim().substring(0, 500) : '';
+
+            const allText = card.textContent || '';
+            let prize = '';
+            const prizeMatch = allText.match(/\\$\\s*[\\d,]+(?:\\.\\d+)?(?:\\s*(?:K|k|M|million))?/);
+            if (prizeMatch) prize = prizeMatch[0].trim();
+
+            // Dates
+            let deadline = '';
+            const dateMatch = allText.match(/(?:Submission|Deadline|Ends?)[:\\s]+([A-Za-z]+ \\d{1,2},?\\s*\\d{4})/i);
+            if (dateMatch) deadline = dateMatch[1];
+
+            const tags = [];
+            card.querySelectorAll('.themes a, [class*="tag"], [class*="theme"]').forEach(el => {
+                const t = el.textContent.trim();
+                if (t && t.length > 1 && t.length < 50) tags.push(t);
+            });
+
+            results.push({
+                name,
+                source_url: href,
+                banner_url: banner,
+                description,
+                prize_pool: prize,
+                registration_deadline: deadline,
+                tags: tags.slice(0, 10),
+            });
+        } catch(e) {}
+    });
+
+    return results;
+}"""
+
+
+UNSTOP_EXTRACT = """() => {
+    const cards = document.querySelectorAll('[class*="card"], [class*="listing"], a[href*="/hackathons/"], a[href*="/competition/"]');
+    const results = [];
+    const seen = new Set();
+
+    cards.forEach(card => {
+        try {
+            let href = card.href || '';
+            if (!href.startsWith('http')) {
+                const aEl = card.querySelector('a[href*="hackathon"], a[href*="competition"]');
+                if (aEl) href = aEl.href;
+            }
+            if (!href || seen.has(href)) return;
+            if (!href.includes('hackathon') && !href.includes('competition')) return;
+            seen.add(href);
+
+            const nameEl = card.querySelector('h3, h2, .title, [class*="title"], [class*="name"], p.semi-bold');
+            const name = nameEl ? nameEl.textContent.trim() : '';
+            if (!name || name.length < 3) return;
+
+            const imgEl = card.querySelector('img');
+            const banner = imgEl ? (imgEl.src || '') : '';
+
+            const allText = card.textContent || '';
+
+            let prize = '';
+            const prizeMatch = allText.match(/(?:₹|INR|Rs\\.?)\\s*[\\d,]+(?:\\.\\d+)?(?:\\s*(?:Lakhs?|Lacs?|Crores?|K|k|L))?/i);
+            if (prizeMatch) prize = prizeMatch[0].trim();
+
+            const tags = [];
+            card.querySelectorAll('[class*="chip"], [class*="tag"], [class*="badge"]').forEach(el => {
+                const t = el.textContent.trim();
+                if (t && t.length > 1 && t.length < 50 && !t.includes('₹')) tags.push(t);
+            });
+
+            const descEl = card.querySelector('p:not(.semi-bold)');
+            const description = descEl ? descEl.textContent.trim().substring(0, 500) : '';
+
+            results.push({
+                name,
+                source_url: href,
+                banner_url: banner,
+                description,
+                prize_pool: prize,
+                tags: tags.slice(0, 10),
+            });
+        } catch(e) {}
+    });
+
+    return results;
+}"""
+
+
+async def crawl_listing_page(url: str, platform: str, extract_script: str, scroll_count: int = 5, wait_secs: int = 5) -> List[dict]:
+    """Generic listing page crawler: navigate, scroll to load lazy cards, extract."""
+    global browser
+    if browser is None:
+        return []
+
+    context = await browser.new_context(
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        viewport={"width": 1920, "height": 1080},
+    )
+
+    try:
+        page = await context.new_page()
+        print(f"[Crawler] Navigating to {url} ({platform})")
+        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        await page.wait_for_timeout(wait_secs * 1000)
+
+        # Scroll multiple times to trigger lazy loading
+        for i in range(scroll_count):
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await asyncio.sleep(2)
+            # Try clicking "Load More" / "Show More" buttons
+            for selector in ['button:has-text("Load More")', 'button:has-text("Show More")', 'button:has-text("View More")', '[class*="load-more"]', '[class*="show-more"]']:
+                try:
+                    btn = page.locator(selector).first
+                    if await btn.is_visible(timeout=500):
+                        await btn.click()
+                        await asyncio.sleep(2)
+                except:
+                    pass
+
+        await page.evaluate("window.scrollTo(0, 0)")
+        await asyncio.sleep(1)
+
+        raw = await page.evaluate(extract_script)
+        print(f"[Crawler] {platform}: extracted {len(raw)} entries")
+
+        hackathons = []
+        for item in raw:
+            name = item.get("name", "").strip()
+            source_url = item.get("source_url", "").strip()
+            if not name or not source_url:
+                continue
+
+            # Parse dates if present
+            reg_deadline = ""
+            if item.get("registration_deadline"):
+                reg_deadline = parse_any_date(item["registration_deadline"])
+
+            hackathons.append({
+                "name": name,
+                "platform": platform,
+                "banner_url": item.get("banner_url", ""),
+                "description": item.get("description", ""),
+                "start_date": parse_any_date(item.get("start_date", "")),
+                "end_date": parse_any_date(item.get("end_date", "")),
+                "registration_deadline": reg_deadline,
+                "prize_pool": item.get("prize_pool", ""),
+                "tags": item.get("tags", []),
+                "source_url": source_url,
+                "status": "open",
+            })
+
+        return hackathons
+    except Exception as e:
+        print(f"[Crawler] {platform} error: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+    finally:
+        await context.close()
+
+
+@app.post("/crawl/devfolio", response_model=CrawlResponse)
+async def crawl_devfolio():
+    results = await crawl_listing_page(
+        url="https://devfolio.co/hackathons/open",
+        platform="Devfolio",
+        extract_script=DEVFOLIO_EXTRACT,
+        scroll_count=5,
+        wait_secs=6,
+    )
+    return CrawlResponse(platform="Devfolio", count=len(results), hackathons=[CrawledHackathon(**h) for h in results])
+
+
+@app.post("/crawl/devpost", response_model=CrawlResponse)
+async def crawl_devpost():
+    results = await crawl_listing_page(
+        url="https://devpost.com/hackathons?open_to[]=public&status[]=open",
+        platform="DevPost",
+        extract_script=DEVPOST_EXTRACT,
+        scroll_count=4,
+        wait_secs=5,
+    )
+    return CrawlResponse(platform="DevPost", count=len(results), hackathons=[CrawledHackathon(**h) for h in results])
+
+
+@app.post("/crawl/unstop", response_model=CrawlResponse)
+async def crawl_unstop():
+    results = await crawl_listing_page(
+        url="https://unstop.com/hackathons",
+        platform="Unstop",
+        extract_script=UNSTOP_EXTRACT,
+        scroll_count=5,
+        wait_secs=8,
+    )
+    return CrawlResponse(platform="Unstop", count=len(results), hackathons=[CrawledHackathon(**h) for h in results])
+
+
+@app.post("/crawl/all")
+async def crawl_all():
+    """Crawl all platforms and return combined results."""
+    print("\n[Crawler] === Starting full crawl ===")
+    devfolio, devpost, unstop = await asyncio.gather(
+        crawl_listing_page("https://devfolio.co/hackathons/open", "Devfolio", DEVFOLIO_EXTRACT, 5, 6),
+        crawl_listing_page("https://devpost.com/hackathons?open_to[]=public&status[]=open", "DevPost", DEVPOST_EXTRACT, 4, 5),
+        crawl_listing_page("https://unstop.com/hackathons", "Unstop", UNSTOP_EXTRACT, 5, 8),
+    )
+    all_results = devfolio + devpost + unstop
+    print(f"[Crawler] === Full crawl complete: {len(all_results)} hackathons ===")
+    return {
+        "total": len(all_results),
+        "by_platform": {
+            "devfolio": len(devfolio),
+            "devpost": len(devpost),
+            "unstop": len(unstop),
+        },
+        "hackathons": all_results,
+    }
