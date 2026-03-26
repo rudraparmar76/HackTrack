@@ -68,6 +68,14 @@ export default function DashboardPage() {
     fetchHackathons();
   }, []);
 
+  const isHistoryHackathon = (hackathon: Hackathon) => {
+    const now = Date.now();
+    const endDate = hackathon.end_date ? new Date(hackathon.end_date).getTime() : null;
+    const resultDate = hackathon.result_date ? new Date(hackathon.result_date).getTime() : null;
+
+    return Boolean(endDate && resultDate && endDate < now && resultDate < now);
+  };
+
   const fetchHackathons = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -116,14 +124,20 @@ export default function DashboardPage() {
 
   const stats = useMemo(() => ({
     total: hackathons.length,
-    active: hackathons.filter((h) => h.status === "active").length,
-    upcoming: hackathons.filter((h) => h.status === "upcoming").length,
-    completed: hackathons.filter((h) => h.status === "completed").length,
+    active: hackathons.filter((h) => h.status === "active" && !isHistoryHackathon(h)).length,
+    upcoming: hackathons.filter((h) => h.status === "upcoming" && !isHistoryHackathon(h)).length,
+    completed: hackathons.filter((h) => h.status === "completed" && !isHistoryHackathon(h)).length,
   }), [hackathons]);
 
   const filtered = useMemo(() => {
     let result = hackathons;
-    if (filter !== "all") result = result.filter((h) => h.status === filter);
+    if (filter === "all") {
+      result = result.filter((h) => !isHistoryHackathon(h));
+    } else if (filter === "archived") {
+      result = result.filter((h) => isHistoryHackathon(h) || h.status === "archived");
+    } else {
+      result = result.filter((h) => h.status === filter && !isHistoryHackathon(h));
+    }
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
