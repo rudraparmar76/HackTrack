@@ -539,7 +539,6 @@ async def scrape(request: ScrapeRequest):
         print(f"[Scraper] Endpoint error: {e}")
         return ScrapeResponse(platform=platform, url=url, scrape_success=False)
 
-
 # ============================================================
 # LISTING PAGE CRAWLERS — for discovery / public_hackathons
 # ============================================================
@@ -594,16 +593,10 @@ DEVFOLIO_EXTRACT = """() => {
             if (!name || name.length < 3) return;
 
             // Walk up to the card container to find banner and other data
-            let container = card;
-            for(let i=0; i<6; i++) {
-                if(container.querySelector('img')) break;
-                if(container.parentElement && container.parentElement.tagName !== 'BODY') {
-                    container = container.parentElement;
-                }
-            }
+            const container = card.closest('div') || card.parentElement?.closest('div') || card;
 
             const imgEl = container.querySelector('img') || card.querySelector('img');
-            const banner = imgEl ? (imgEl.getAttribute('src') || imgEl.getAttribute('data-src') || imgEl.src || '') : '';
+            const banner = imgEl ? (imgEl.src || imgEl.getAttribute('data-src') || '') : '';
 
             const descEl = container.querySelector('p') || card.querySelector('p');
             const description = descEl ? descEl.textContent.trim().substring(0, 500) : '';
@@ -612,7 +605,7 @@ DEVFOLIO_EXTRACT = """() => {
 
             // Extract prize
             let prize = '';
-            const prizeMatch = allText.match(/(?:[\u20B9$\u20AC\u00A3]|INR|USD|Rs\.?)\s*[\d,]+(?:\.\d+)?(?:\s*(?:Lakhs?|Lacs?|Crores?|K|k|L|M))?/i);
+            const prizeMatch = allText.match(/[\u20B9$\u20AC\u00A3]\s*[\d,]+(?:\.\d+)?(?:\s*(?:Lakhs?|Lacs?|Crores?|K|k|L|M))?/);
             if (prizeMatch) prize = prizeMatch[0].trim();
 
             // Extract dates like "Mar 25 - 27, 2026" or "Runs from ..."
@@ -738,12 +731,12 @@ UNSTOP_EXTRACT = """() => {
             if (!name || name.length < 3) return;
 
             const imgEl = card.querySelector('img');
-            const banner = imgEl ? (imgEl.getAttribute('src') || imgEl.getAttribute('data-src') || imgEl.src || '') : '';
+            const banner = imgEl ? (imgEl.src || '') : '';
 
             const allText = card.textContent || '';
 
             let prize = '';
-            const prizeMatch = allText.match(/(?:₹|INR|Rs\.?|\$|USD)\s*[\d,]+(?:\.\d+)?(?:\s*(?:Lakhs?|Lacs?|Crores?|K|k|L|M))?/i);
+            const prizeMatch = allText.match(/(?:₹|INR|Rs\\.?)\\s*[\\d,]+(?:\\.\\d+)?(?:\\s*(?:Lakhs?|Lacs?|Crores?|K|k|L))?/i);
             if (prizeMatch) prize = prizeMatch[0].trim();
 
             const tags = [];
