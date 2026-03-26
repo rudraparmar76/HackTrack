@@ -37,6 +37,8 @@ import {
   GripVertical,
   FileText,
   Loader2,
+  Edit,
+  Pencil,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -113,6 +115,15 @@ export default function HackathonDetailPage() {
   const [newTaskStatus, setNewTaskStatus] = useState("idea");
   const [noteContent, setNoteContent] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+
+  // Edit States
+  const [showEditHackathon, setShowEditHackathon] = useState(false);
+  const [editHackathonData, setEditHackathonData] = useState<Partial<Hackathon>>({});
+  const [showEditMember, setShowEditMember] = useState(false);
+  const [editMemberData, setEditMemberData] = useState<{id: string, name: string, role: string} | null>(null);
+  const [showAddProblem, setShowAddProblem] = useState(false);
+  const [newProblemTitle, setNewProblemTitle] = useState("");
+  const [newProblemTrack, setNewProblemTrack] = useState("");
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -312,6 +323,40 @@ export default function HackathonDetailPage() {
     fetchAll();
   };
 
+  const saveHackathonDetails = async () => {
+    if (!isOwner) return;
+    const { error } = await supabase.from("hackathons").update(editHackathonData).eq("id", hackathonId);
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    setShowEditHackathon(false);
+    fetchAll();
+    toast({ title: "Hackathon updated" });
+  };
+
+  const saveMemberEdit = async () => {
+    if (!isOwner || !editMemberData) return;
+    const { error } = await supabase.from("team_members").update({ name: editMemberData.name, role: editMemberData.role }).eq("id", editMemberData.id);
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    setShowEditMember(false);
+    fetchAll();
+    toast({ title: "Member updated" });
+  };
+
+  const addProblemStatement = async () => {
+    if (!isOwner || !newProblemTitle.trim()) return;
+    const { error } = await supabase.from("problem_statements").insert({ hackathon_id: hackathonId, title: newProblemTitle, track: newProblemTrack });
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    setNewProblemTitle(""); setNewProblemTrack("");
+    setShowAddProblem(false);
+    fetchAll();
+    toast({ title: "Problem statement added" });
+  };
+
+  const deleteProblemStatement = async (psId: string) => {
+    if (!isOwner) return;
+    await supabase.from("problem_statements").delete().eq("id", psId);
+    fetchAll();
+  };
+
   const saveNote = async () => {
     setSavingNote(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -380,9 +425,68 @@ export default function HackathonDetailPage() {
           </div>
         </div>
         {isOwner && (
-          <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-400 border-red-500/20 hover:bg-red-500/10 gap-1">
-            <Trash2 className="w-3.5 h-3.5" /> Delete
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <Dialog open={showEditHackathon} onOpenChange={setShowEditHackathon}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" onClick={() => setEditHackathonData(hackathon)} className="gap-1 border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
+                  <Edit className="w-3.5 h-3.5" /> Edit
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>Edit Hackathon Details</DialogTitle></DialogHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>Name</Label>
+                    <Input value={editHackathonData.name || ""} onChange={(e) => setEditHackathonData({...editHackathonData, name: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>URL</Label>
+                    <Input value={editHackathonData.url || ""} onChange={(e) => setEditHackathonData({...editHackathonData, url: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Input type="date" value={editHackathonData.start_date?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, start_date: e.target.value || null})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End Date</Label>
+                    <Input type="date" value={editHackathonData.end_date?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, end_date: e.target.value || null})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Registration Deadline</Label>
+                    <Input type="date" value={editHackathonData.registration_deadline?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, registration_deadline: e.target.value || null})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Submission Deadline</Label>
+                    <Input type="date" value={editHackathonData.submission_deadline?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, submission_deadline: e.target.value || null})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Team Size Min</Label>
+                    <Input type="number" value={editHackathonData.team_size_min || 1} onChange={(e) => setEditHackathonData({...editHackathonData, team_size_min: parseInt(e.target.value) || 1})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Team Size Max</Label>
+                    <Input type="number" value={editHackathonData.team_size_max || 4} onChange={(e) => setEditHackathonData({...editHackathonData, team_size_max: parseInt(e.target.value) || 4})} />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label>Prize Pool</Label>
+                    <Input value={editHackathonData.prize_pool || ""} onChange={(e) => setEditHackathonData({...editHackathonData, prize_pool: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label>Description</Label>
+                    <textarea 
+                      className="w-full bg-[#0F1117] border border-[#1E2330] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00FF87] min-h-[100px]"
+                      value={editHackathonData.description || ""} 
+                      onChange={(e) => setEditHackathonData({...editHackathonData, description: e.target.value})} 
+                    />
+                  </div>
+                  <Button onClick={saveHackathonDetails} className="sm:col-span-2 w-full mt-2">Save Changes</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-400 border-red-500/20 hover:bg-red-500/10 gap-1">
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </Button>
+          </div>
         )}
       </div>
 
@@ -470,17 +574,49 @@ export default function HackathonDetailPage() {
           </div>
 
           {/* Problem Statements */}
-          {problems.length > 0 && (
+          {(problems.length > 0 || isOwner) && (
             <div className="hack-card rounded-xl p-5">
-              <h3 className="text-sm font-medium text-[#7A8099] mb-3">Problem Statements / Tracks</h3>
-              <div className="space-y-2">
-                {problems.map((ps) => (
-                  <div key={ps.id} className="flex items-center gap-3 bg-[#151820] rounded-lg px-4 py-3 text-sm border border-[#1E2330]">
-                    {ps.track && <span className="text-[#00FF87] font-medium font-mono">{ps.track}</span>}
-                    <span className="text-[#E8EAF0]">{ps.title}</span>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-[#7A8099]">Problem Statements / Tracks</h3>
+                {isOwner && (
+                  <Dialog open={showAddProblem} onOpenChange={setShowAddProblem}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 text-[#00FF87] hover:text-[#00FF87] hover:bg-[#00FF87]/10"><Plus className="w-3 h-3"/> Add</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader><DialogTitle>Add Problem Statement</DialogTitle></DialogHeader>
+                      <div className="space-y-4 pt-2">
+                        <div className="space-y-2">
+                          <Label>Title / Description *</Label>
+                          <Input value={newProblemTitle} onChange={(e) => setNewProblemTitle(e.target.value)} placeholder="e.g. Build an AI-powered assistant" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Track (Optional)</Label>
+                          <Input value={newProblemTrack} onChange={(e) => setNewProblemTrack(e.target.value)} placeholder="e.g. Web3, GenAI, Open Innovation" />
+                        </div>
+                        <Button onClick={addProblemStatement} className="w-full">Save</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
+              {problems.length > 0 ? (
+                <div className="space-y-2">
+                  {problems.map((ps) => (
+                    <div key={ps.id} className="flex items-center gap-3 bg-[#151820] rounded-lg px-4 py-3 text-sm border border-[#1E2330]">
+                      {ps.track && <span className="text-[#00FF87] font-medium font-mono whitespace-nowrap">{ps.track}</span>}
+                      <span className="text-[#E8EAF0] flex-1 min-w-0 break-words">{ps.title}</span>
+                      {isOwner && (
+                        <button onClick={() => deleteProblemStatement(ps.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1 shrink-0">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[#454D66] italic">No problem statements added yet.</p>
+              )}
             </div>
           )}
         </TabsContent>
@@ -552,9 +688,46 @@ export default function HackathonDetailPage() {
                     <p className="text-xs text-[#7A8099]">{m.role}</p>
                   </div>
                   {isOwner && (
-                    <button onClick={() => removeMember(m.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Dialog open={showEditMember && editMemberData?.id === m.id} onOpenChange={(open) => {
+                        if (open) {
+                          setEditMemberData({ id: m.id, name: m.name, role: m.role || "Member" });
+                          setShowEditMember(true);
+                        } else {
+                          setShowEditMember(false);
+                          setEditMemberData(null);
+                        }
+                      }}>
+                        <DialogTrigger asChild>
+                          <button className="text-[#454D66] hover:text-[#00FF87] transition-colors p-1">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader><DialogTitle>Edit Member</DialogTitle></DialogHeader>
+                          <div className="space-y-4 pt-2">
+                            <div className="space-y-2">
+                              <Label>Name *</Label>
+                              <Input value={editMemberData?.name || ""} onChange={(e) => setEditMemberData(prev => prev ? {...prev, name: e.target.value} : null)} placeholder="Name" />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Role</Label>
+                              <Select value={editMemberData?.role || ""} onValueChange={(val) => setEditMemberData(prev => prev ? {...prev, role: val} : null)}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                  <SelectItem value="Member">Member</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <Button onClick={saveMemberEdit} className="w-full">Save Changes</Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <button onClick={() => removeMember(m.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
