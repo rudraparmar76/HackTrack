@@ -130,7 +130,32 @@ export default function HackathonDetailPage() {
       return;
     }
 
-    const ownerAccess = hackRes.data.user_id === currentUser.id;
+    const getDynamicStatus = (hack: any) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayTime = today.getTime();
+
+      const getNormalizedTime = (dateStr: string | null) => {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return null;
+        const localD = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        return localD.getTime();
+      };
+
+      const start = getNormalizedTime(hack.start_date);
+      const end = getNormalizedTime(hack.end_date) || getNormalizedTime(hack.submission_deadline);
+
+      if (end !== null && todayTime > end) return "completed";
+      if (start !== null && start > todayTime) return "upcoming";
+      if (start === null && end === null) return hack.status;
+      return "active";
+    };
+
+    const hackathonData = hackRes.data;
+    hackathonData.status = getDynamicStatus(hackathonData);
+
+    const ownerAccess = hackathonData.user_id === currentUser.id;
     let memberAccess = false;
     if (!ownerAccess && currentUser.email) {
       const membership = await supabase
@@ -160,7 +185,7 @@ export default function HackathonDetailPage() {
         : Promise.resolve({ data: [], error: null } as any),
     ]);
 
-    setHackathon(hackRes.data);
+    setHackathon(hackathonData);
     setTeam(teamRes.data || []);
     setTasks(taskRes.data || []);
     setProblems(psRes.data || []);

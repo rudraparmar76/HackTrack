@@ -64,17 +64,32 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("deadline");
 
+  const getDynamicStatus = (hackathon: any) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTime = today.getTime();
+
+    const getNormalizedTime = (dateStr: string | null) => {
+      if (!dateStr) return null;
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return null;
+      // Use local date parts to avoid timezone shifts
+      const localD = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      return localD.getTime();
+    };
+
+    const start = getNormalizedTime(hackathon.start_date);
+    const end = getNormalizedTime(hackathon.end_date) || getNormalizedTime(hackathon.submission_deadline);
+
+    if (end !== null && todayTime > end) return "completed";
+    if (start !== null && start > todayTime) return "upcoming";
+    if (start === null && end === null) return hackathon.status; // fallback
+    return "active";
+  };
+
   useEffect(() => {
     fetchHackathons();
   }, []);
-
-  const isHistoryHackathon = (hackathon: Hackathon) => {
-    const now = Date.now();
-    const endDate = hackathon.end_date ? new Date(hackathon.end_date).getTime() : null;
-    const resultDate = hackathon.result_date ? new Date(hackathon.result_date).getTime() : null;
-
-    return Boolean(endDate && resultDate && endDate < now && resultDate < now);
-  };
 
   const fetchHackathons = async () => {
     setLoading(true);
@@ -118,25 +133,22 @@ export default function DashboardPage() {
       }
     }
 
-    setHackathons([...owned, ...shared]);
+    const allHackathons = [...owned, ...shared].map(h => ({ ...h, status: getDynamicStatus(h) }));
+    setHackathons(allHackathons);
     setLoading(false);
   };
 
   const stats = useMemo(() => ({
     total: hackathons.length,
-    active: hackathons.filter((h) => h.status === "active" && !isHistoryHackathon(h)).length,
-    upcoming: hackathons.filter((h) => h.status === "upcoming" && !isHistoryHackathon(h)).length,
-    completed: hackathons.filter((h) => h.status === "completed" && !isHistoryHackathon(h)).length,
+    active: hackathons.filter((h) => h.status === "active").length,
+    upcoming: hackathons.filter((h) => h.status === "upcoming").length,
+    completed: hackathons.filter((h) => h.status === "completed").length,
   }), [hackathons]);
 
   const filtered = useMemo(() => {
     let result = hackathons;
-    if (filter === "all") {
-      result = result.filter((h) => !isHistoryHackathon(h));
-    } else if (filter === "archived") {
-      result = result.filter((h) => isHistoryHackathon(h) || h.status === "archived");
-    } else {
-      result = result.filter((h) => h.status === filter && !isHistoryHackathon(h));
+    if (filter !== "all") {
+      result = result.filter((h) => h.status === filter);
     }
     if (search) {
       const q = search.toLowerCase();
@@ -204,7 +216,6 @@ export default function DashboardPage() {
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
           </TabsList>
         </Tabs>
 
