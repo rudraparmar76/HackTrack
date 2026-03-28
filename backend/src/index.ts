@@ -96,6 +96,29 @@ function daysUntil(value: string | null | undefined): number | null {
   return Math.floor((deadlineDay - todayDay) / 86400000);
 }
 
+const DEFAULT_CHECKLIST_ITEMS = [
+  "Read all problem statements",
+  "Form team & assign roles",
+  "Finalise project idea",
+  "Set up GitHub repository",
+  "Build working prototype",
+  "Record demo video (max 3 min)",
+  "Write project README",
+  "Deploy project (Vercel/Railway/etc)",
+  "Submit project link on platform",
+  "Submit devpost/devfolio submission form",
+];
+
+async function insertDefaultChecklist(hackathonId: string) {
+  const rows = DEFAULT_CHECKLIST_ITEMS.map((label, idx) => ({
+    hackathon_id: hackathonId,
+    label,
+    checked: false,
+    order_index: idx,
+  }));
+  await supabase.from("checklist_items").insert(rows);
+}
+
 async function getUserEmail(userId: string): Promise<string | null> {
   const { data, error } = await supabase.auth.admin.getUserById(userId);
   if (error || !data?.user?.email) return null;
@@ -636,6 +659,12 @@ app.post("/api/hackathons", async (req, res) => {
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
+
+  // Auto-insert default checklist items for new hackathon
+  if (data?.id) {
+    await insertDefaultChecklist(data.id);
+  }
+
   res.json(data);
 });
 
@@ -1039,6 +1068,111 @@ app.patch("/api/notifications/read-all", async (req, res) => {
     .eq("read", false);
 
   if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
+
+// ============ SUBMISSION CHECKLIST ============
+app.get("/api/hackathons/:id/checklist", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { data, error } = await supabase
+    .from("checklist_items")
+    .select("*")
+    .eq("hackathon_id", req.params.id)
+    .order("order_index", { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+app.post("/api/hackathons/:id/checklist", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const label = String(req.body?.label || "").trim();
+  if (!label) return res.status(400).json({ error: "Label is required" });
+
+  // Get highest order_index for this hackathon
+  const { data: existing } = await supabase
+    .from("checklist_items")
+    .select("order_index")
+    .eq("hackathon_id", req.params.id)
+    .order("order_index", { ascending: false })
+    .limit(1);
+
+  const nextIndex = (existing && existing.length > 0 ? existing[0].order_index : -1) + 1;
+
+  const { data, error } = await supabase
+    .from("checklist_items")
+    .insert({
+      hackathon_id: req.params.id,
+      label,
+      checked: false,
+      order_index: nextIndex,
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.patch("/api/checklist/:itemId", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const updates: Record<string, any> = {};
+  if (typeof req.body.checked === "boolean") updates.checked = req.body.checked;
+  if (typeof req.body.label === "string") updates.label = req.body.label.trim();
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: "Nothing to update" });
+  }
+
+  const { data, error } = await supabase
+    .from("checklist_items")
+    .update(updates)
+    .eq("id", req.params.itemId)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.delete("/api/checklist/:itemId", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { error } = await supabase
+    .from("checklist_items")
+    .delete()
+    .eq("id", req.params.itemId);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
+
+// Reorder checklist items (batch update order_index)
+app.patch("/api/hackathons/:id/checklist/reorder", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const items: { id: string; order_index: number }[] = req.body?.items;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "Items array is required" });
+  }
+
+  const updates = items.map((item) =>
+    supabase
+      .from("checklist_items")
+      .update({ order_index: item.order_index })
+      .eq("id", item.id)
+      .eq("hackathon_id", req.params.id)
+  );
+
+  await Promise.all(updates);
   res.json({ success: true });
 });
 
