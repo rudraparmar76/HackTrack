@@ -421,7 +421,7 @@ export default function DiscoverPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           {/* Search */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative w-full sm:flex-1 sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#454D66]" />
             <input
               type="text"
@@ -432,40 +432,46 @@ export default function DiscoverPage() {
             />
           </div>
 
-          {/* Platform filter */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[#454D66]" />
-            <Select value={platform} onValueChange={(v) => { setPlatform(v); setPage(1); }}>
-              <SelectTrigger className="w-[160px] bg-[#1A1F2E] border-[#1E2330] text-[#E8EAF0] text-sm h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1A1F2E] border-[#1E2330]">
-                {PLATFORM_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-[#E8EAF0] text-sm">
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="flex w-full sm:w-auto gap-3 flex-col xs:flex-row sm:items-center sm:ml-auto">
+            {/* Platform filter */}
+            <div className="flex-1 sm:flex-none">
+              <Select value={platform} onValueChange={(v) => { setPlatform(v); setPage(1); }}>
+                <SelectTrigger className="w-full sm:w-[160px] bg-[#1A1F2E] border-[#1E2330] text-[#E8EAF0] text-sm h-10">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-[#454D66] hidden sm:block" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="bg-[#1A1F2E] border-[#1E2330]">
+                  {PLATFORM_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-[#E8EAF0] text-sm">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Sort */}
-          <Select value={sort} onValueChange={(v) => { setSort(v); setPage(1); }}>
-            <SelectTrigger className="w-[180px] bg-[#1A1F2E] border-[#1E2330] text-[#E8EAF0] text-sm h-10">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1A1F2E] border-[#1E2330]">
-              {SORT_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value} className="text-[#E8EAF0] text-sm">
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {/* Sort */}
+            <div className="flex-1 sm:flex-none">
+              <Select value={sort} onValueChange={(v) => { setSort(v); setPage(1); }}>
+                <SelectTrigger className="w-full sm:w-[180px] bg-[#1A1F2E] border-[#1E2330] text-[#E8EAF0] text-sm h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1A1F2E] border-[#1E2330]">
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-[#E8EAF0] text-sm">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           {/* Count */}
           {!loading && (
-            <span className="text-xs text-[#7A8099] ml-auto hidden sm:block">
+            <span className="text-xs text-[#7A8099] ml-0 sm:ml-auto pt-1 sm:pt-0 w-full sm:w-auto text-center sm:text-right hidden sm:block">
               {pagination.total} hackathon{pagination.total !== 1 ? "s" : ""} found
             </span>
           )}

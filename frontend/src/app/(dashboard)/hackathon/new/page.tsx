@@ -246,17 +246,17 @@ export default function NewHackathonPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 w-full">
             <Link2 className="absolute left-3 top-2.5 h-4 w-4 text-[#454D66]" />
             <Input
               placeholder="Paste hackathon URL here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
-          <Button onClick={handleScrape} disabled={scraping || !url.trim()} className="gap-2">
+          <Button onClick={handleScrape} disabled={scraping || !url.trim()} className="gap-2 w-full sm:w-auto">
             {scraping ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" /> Scraping...
@@ -412,7 +412,7 @@ export default function NewHackathonPage() {
           ) : (
             <div className="space-y-2">
               {problemStatements.map((ps, i) => (
-                <div key={i} className="flex items-center gap-3 bg-[#151820] rounded-lg px-3 py-2 border border-[#1E2330]">
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-[#151820] rounded-lg px-3 py-2 border border-[#1E2330]">
                   <Input
                     value={ps.track}
                     onChange={(e) => {
@@ -421,7 +421,7 @@ export default function NewHackathonPage() {
                       setProblemStatements(updated);
                     }}
                     placeholder="Track name"
-                    className="w-32 h-8 text-xs font-mono"
+                    className="w-full sm:w-32 h-8 text-xs font-mono"
                   />
                   <Input
                     value={ps.title}
@@ -431,11 +431,11 @@ export default function NewHackathonPage() {
                       setProblemStatements(updated);
                     }}
                     placeholder="Problem statement title"
-                    className="flex-1 h-8 text-xs"
+                    className="w-full sm:flex-1 h-8 text-xs"
                   />
                   <button
                     onClick={() => setProblemStatements(problemStatements.filter((_, j) => j !== i))}
-                    className="text-[#454D66] hover:text-red-400 transition-colors text-xs shrink-0"
+                    className="text-[#454D66] hover:text-red-400 transition-colors text-xs self-end sm:self-auto shrink-0 mt-1 sm:mt-0"
                   >
                     Remove
                   </button>

@@ -537,22 +537,22 @@ export default function HackathonDetailPage() {
       />
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <Link href="/dashboard" className="p-2 rounded-lg hover:bg-[#1A1F2E] transition-colors text-[#7A8099] hover:text-[#E8EAF0] mt-1">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div className="flex items-start gap-3 sm:gap-4 shrink-0 max-w-full">
+          <Link href="/dashboard" className="p-2 rounded-lg hover:bg-[#1A1F2E] transition-colors text-[#7A8099] hover:text-[#E8EAF0] mt-1 shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-[#E8EAF0]">{hackathon.name}</h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(hackathon.status)}`}>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#E8EAF0] break-words line-clamp-2">{hackathon.name}</h1>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(hackathon.status)}`}>
                 {hackathon.status === "active" && (
                   <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] pulse-dot" />
                 )}
                 {hackathon.status.charAt(0).toUpperCase() + hackathon.status.slice(1)}
               </span>
               {hackathon.platform && (
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getPlatformColor(hackathon.platform)}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getPlatformColor(hackathon.platform)}`}>
                   {hackathon.platform}
                 </span>
               )}
@@ -648,15 +648,17 @@ export default function HackathonDetailPage() {
       )}
 
       {/* Tabs */}
-      <Tabs defaultValue="overview">
-        <TabsList className="bg-[#1A1F2E] border border-[#1E2330]">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist</TabsTrigger>
-          <TabsTrigger value="teammates">Find Teammates</TabsTrigger>
-          <TabsTrigger value="team">Team ({team.length})</TabsTrigger>
-          <TabsTrigger value="progress">Progress</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="overview" className="w-full">
+        <div className="w-full overflow-x-auto pb-1 no-scrollbar">
+          <TabsList className="bg-[#1A1F2E] border border-[#1E2330] flex w-max sm:w-auto h-auto min-h-10">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="checklist">Checklist</TabsTrigger>
+            <TabsTrigger value="teammates">Find Teammates</TabsTrigger>
+            <TabsTrigger value="team">Team ({team.length})</TabsTrigger>
+            <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6 mt-6">
@@ -799,7 +801,6 @@ export default function HackathonDetailPage() {
               )}
             </div>
           )}
-
           {/* AI Project Ideas */}
           <div className="hack-card rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">

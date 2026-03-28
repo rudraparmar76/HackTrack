@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { daysUntil, hoursUntil, getStatusColor, getCountdownClass, getPlatformColor, formatDate } from "@/lib/utils";
+import { daysUntil, getStatusColor, getCountdownClass, getPlatformColor } from "@/lib/utils";
 import CountdownTimer from "@/components/countdown-timer";
 import {
   Trophy,
@@ -259,7 +259,7 @@ export default function DashboardPage() {
       })()}
 
       {/* Page title */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#E8EAF0]">Dashboard</h1>
           <p className="text-sm text-[#7A8099] mt-1">Your hackathon command center</p>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
             variant="outline"
             size="sm"
             onClick={handleShareProfile}
-            className="gap-2 text-xs border-[#1E2330] hover:border-[#00FF87]/30 hover:text-[#00FF87]"
+            className="w-full sm:w-auto gap-2 text-xs border-[#1E2330] hover:border-[#00FF87]/30 hover:text-[#00FF87]"
           >
             <Share2 className="w-3.5 h-3.5" />
             {shareCopied ? "Copied!" : "Share Profile"}
@@ -301,9 +301,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Tabs value={filter} onValueChange={setFilter} className="w-full sm:w-auto">
-          <TabsList className="bg-[#1A1F2E] border border-[#1E2330]">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+        <Tabs value={filter} onValueChange={setFilter} className="w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
+          <TabsList className="bg-[#1A1F2E] border border-[#1E2330] flex w-max sm:w-auto">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="building">Building</TabsTrigger>
             <TabsTrigger value="submitted">Submitted</TabsTrigger>
@@ -311,18 +311,18 @@ export default function DashboardPage() {
           </TabsList>
         </Tabs>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
-          <div className="relative flex-1 sm:flex-initial">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto lg:ml-auto">
+          <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#454D66]" />
             <Input
               placeholder="Search hackathons..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 w-full sm:w-64"
+              className="pl-10 w-full lg:w-64"
             />
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-full sm:w-[140px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>

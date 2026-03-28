@@ -32,7 +32,12 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  setIsOpen?: (val: boolean) => void;
+}
+
+export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
@@ -72,7 +77,11 @@ export function Sidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[220px] bg-[#151820] border-r border-[#1E2330] flex flex-col z-50">
+    <aside 
+      className={`fixed left-0 top-0 h-screen w-[220px] bg-[#151820] border-r border-[#1E2330] flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       {/* Logo */}
       <Link
         href={user ? "/dashboard" : "/"}
@@ -87,8 +96,8 @@ export function Sidebar() {
       </Link>
 
       {/* Add Hackathon CTA */}
-      <div className="px-4 mb-4">
-        <Link href="/hackathon/new">
+      <div className="px-4 mb-4 mt-4 md:mt-0">
+        <Link href="/hackathon/new" onClick={() => setIsOpen?.(false)}>
           <button className="w-full flex items-center justify-center gap-2 h-9 rounded-lg bg-[#00FF87] text-[#0F1117] text-sm font-semibold hover:bg-[#00FF87]/90 transition-colors">
             <Plus className="w-4 h-4" />
             Add Hackathon
@@ -104,6 +113,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setIsOpen?.(false)}
               className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 active
                   ? "text-[#00FF87] bg-[#00FF87]/5"
