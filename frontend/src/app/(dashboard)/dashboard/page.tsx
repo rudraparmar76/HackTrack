@@ -278,22 +278,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat, i) => (
           <motion.div
             key={stat.key}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className={`hack-card rounded-xl p-5 ${stat.key === "total" ? "hero-glow" : ""}`}
+            className={`hack-card rounded-xl p-4 sm:p-5 ${stat.key === "total" ? "hero-glow" : ""}`}
           >
-            <div className="flex items-center justify-between mb-3 relative z-10">
-              <span className="text-sm text-[#7A8099]">{stat.label}</span>
-              <div className={`w-9 h-9 rounded-lg ${stat.bg} flex items-center justify-center`}>
-                <stat.icon className={`w-5 h-5 ${stat.accent}`} />
+            <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3 relative z-10">
+              <span className="text-xs sm:text-sm text-[#7A8099] leading-tight break-words">{stat.label}</span>
+              <div className={`w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-lg ${stat.bg} flex items-center justify-center`}>
+                <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.accent}`} />
               </div>
             </div>
-            <p className={`text-3xl font-bold font-mono relative z-10 ${stat.key === "total" ? "glow-text" : "text-[#E8EAF0]"}`}>
+            <p className={`text-2xl sm:text-3xl font-bold font-mono relative z-10 ${stat.key === "total" ? "glow-text" : "text-[#E8EAF0]"}`}>
               {apiStats[stat.key as keyof typeof apiStats]}
             </p>
           </motion.div>
