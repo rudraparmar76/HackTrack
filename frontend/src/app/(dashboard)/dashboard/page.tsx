@@ -18,11 +18,9 @@ import CountdownTimer from "@/components/countdown-timer";
 import {
   Trophy,
   Zap,
-  Calendar,
   CheckCircle,
   Search,
   Plus,
-  Clock,
   Users,
   ExternalLink,
   AlertTriangle,
@@ -91,6 +89,7 @@ export default function DashboardPage() {
     fetchHackathons();
     fetchStats();
     fetchUsername();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUsername = async () => {
