@@ -544,7 +544,7 @@ export default function HackathonDetailPage() {
           </Link>
           <div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-[#E8EAF0] break-words line-clamp-2">{hackathon.name}</h1>
+              <h1 className="pixel text-sm sm:text-base text-[#E8EAF0] break-words line-clamp-2" style={{ textShadow: '0 0 20px rgba(123,47,255,0.35)' }}>{hackathon.name}</h1>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(hackathon.status)}`}>
                 {hackathon.status === "active" && (
                   <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] pulse-dot" />
@@ -633,8 +633,8 @@ export default function HackathonDetailPage() {
 
       {/* Countdown Bar */}
       {daysLeft !== null && (
-        <div className="hack-card rounded-xl p-4 flex items-center gap-4">
-          <Clock className="w-5 h-5 text-[#00FF87] shrink-0" />
+        <div className="hack-card dash-card-glow rounded-xl p-4 flex items-center gap-4">
+          <Clock className="w-5 h-5 text-purple-400 shrink-0" />
           <div className="flex-1">
             <p className="text-sm text-[#7A8099]">Submission Deadline</p>
             <p className={`text-lg font-bold font-mono ${countdownClass}`}>
@@ -648,9 +648,9 @@ export default function HackathonDetailPage() {
       )}
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="overview" className="purple-tabs w-full">
         <div className="w-full overflow-x-auto pb-1 no-scrollbar">
-          <TabsList className="bg-[#1A1F2E] border border-[#1E2330] flex w-max sm:w-auto h-auto min-h-10">
+          <TabsList className="bg-[#0a0520] border border-purple-500/15 flex w-max sm:w-auto h-auto min-h-10">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="checklist">Checklist</TabsTrigger>
             <TabsTrigger value="teammates">Find Teammates</TabsTrigger>

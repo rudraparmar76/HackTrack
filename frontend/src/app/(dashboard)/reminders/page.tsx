@@ -95,8 +95,12 @@ export default function RemindersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#E8EAF0]">Reminders</h1>
-          <p className="text-sm text-[#7A8099]">Stay on top of your hackathon deadlines</p>
+          <div className="dash-terminal mb-2">
+            <span>$ crontab -l</span>
+            <span className="cursor"></span>
+          </div>
+          <h1 className="dash-heading">Reminders</h1>
+          <p className="text-sm text-[#8888bb] mt-2 mono">Stay on top of your hackathon deadlines</p>
         </div>
         <Dialog open={showAdd} onOpenChange={setShowAdd}>
           <DialogTrigger asChild>
@@ -155,10 +159,10 @@ export default function RemindersPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="hack-card rounded-xl p-4 flex items-center gap-4"
+                    className="hack-card dash-card-glow rounded-xl p-4 flex items-center gap-4"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-[#00FF87]/10 flex items-center justify-center shrink-0">
-                      <Bell className="w-5 h-5 text-[#00FF87]" />
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                      <Bell className="w-5 h-5 text-purple-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#E8EAF0]">{r.message}</p>

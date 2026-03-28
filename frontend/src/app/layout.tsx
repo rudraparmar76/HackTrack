@@ -6,7 +6,13 @@ import { Analytics } from '@vercel/analytics/next';
 export const metadata: Metadata = {
   title: "HackTrack — Hackathon Command Center",
   description:
-    "Track your hackathons, auto-extract event details, manage teams, set reminders, and track progress from idea to submission.",
+    "From discovering hackathons to tracking deadlines, building your team, and bringing home the trophy — HackTrack is your all-in-one hackathon command center.",
+  keywords: ["hackathon", "tracker", "devfolio", "unstop", "devpost", "hackathon manager", "hacktrack"],
+  openGraph: {
+    title: "HackTrack — Hackathon Command Center",
+    description: "Your all-in-one hackathon command center. Discover, track, build, and win.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

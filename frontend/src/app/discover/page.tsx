@@ -148,7 +148,7 @@ function HackathonCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3 }}
-      className="hack-card rounded-2xl overflow-hidden group flex flex-col"
+      className="discover-card rounded-2xl overflow-hidden group flex flex-col"
     >
       {/* Banner */}
       <div className="relative h-40 bg-gradient-to-br from-[#1A1F2E] to-[#252A3A] overflow-hidden">
@@ -183,7 +183,7 @@ function HackathonCard({
 
       {/* Content */}
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="text-base font-semibold text-[#E8EAF0] mb-1.5 line-clamp-2 leading-snug group-hover:text-[#00FF87] transition-colors">
+        <h3 className="text-base font-semibold text-[#E8EAF0] mb-1.5 line-clamp-2 leading-snug group-hover:text-purple-400 transition-colors">
           {hackathon.name}
         </h3>
 
@@ -237,7 +237,7 @@ function HackathonCard({
           <Button
             onClick={() => onTrack(hackathon)}
             disabled={isTracking}
-            className="flex-1 gap-1.5 bg-[#00FF87] text-[#0F1117] hover:bg-[#00FF87]/90 font-semibold text-xs h-9 shadow-sm shadow-[#00FF87]/10 hover:shadow-[#00FF87]/20 transition-all"
+            className="btn-purple flex-1 gap-1.5 font-semibold text-xs h-9 mono"
           >
             <Bookmark className="w-3.5 h-3.5" />
             {isTracking ? "Tracking..." : "Track This"}
@@ -365,29 +365,29 @@ export default function DiscoverPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1117]">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-void)' }}>
       {/* Nav */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-[#0F1117]/80 border-b border-[#1E2330]">
+      <nav className="sticky top-0 z-50 backdrop-blur-xl border-b" style={{ background: 'rgba(4,4,15,0.85)', borderColor: 'rgba(123,47,255,0.2)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#00FF87]/10 border border-[#00FF87]/20 flex items-center justify-center">
-              <Terminal className="w-4.5 h-4.5 text-[#00FF87]" />
+            <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center" style={{ boxShadow: 'var(--glow-sm)' }}>
+              <Terminal className="w-4.5 h-4.5 text-purple-400" />
             </div>
-            <span className="text-lg font-bold text-[#E8EAF0]">
-              Hack<span className="text-[#00FF87]">Track</span>
+            <span className="pixel text-[10px] text-[#E8EAF0] tracking-wide">
+              HACK<span className="text-purple-400">TRACK</span>
             </span>
           </Link>
           <div className="hidden sm:flex items-center gap-3">
             <Link href="/login">
               <Button
                 variant="outline"
-                className="border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0] text-sm"
+                className="mono text-xs" style={{ borderColor: 'rgba(123,47,255,0.3)', color: '#E8EAF0' }}
               >
                 Sign In
               </Button>
             </Link>
             <Link href="/login">
-              <Button className="bg-[#00FF87] text-[#0F1117] hover:bg-[#00FF87]/90 font-semibold text-sm gap-1.5">
+              <Button className="btn-purple mono text-xs font-semibold gap-1.5">
                 Get Started <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
@@ -411,7 +411,7 @@ export default function DiscoverPage() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="sm:hidden overflow-hidden bg-[#0F1117]/95 border-b border-[#1E2330] backdrop-blur-xl absolute top-[73px] left-0 right-0 z-40"
+            className="sm:hidden overflow-hidden border-b backdrop-blur-xl absolute top-[73px] left-0 right-0 z-40" style={{ background: 'rgba(4,4,15,0.95)', borderColor: 'rgba(123,47,255,0.15)' }}
           >
             <div className="px-4 py-4 flex flex-col gap-3 shadow-2xl">
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
@@ -420,7 +420,7 @@ export default function DiscoverPage() {
                 </Button>
               </Link>
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="w-full justify-start bg-[#00FF87] text-[#0F1117] hover:bg-[#00FF87]/90 font-semibold gap-1.5">
+                <Button className="btn-purple w-full justify-start mono text-xs font-semibold gap-1.5">
                   Get Started <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
@@ -431,22 +431,26 @@ export default function DiscoverPage() {
 
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-[#00FF87]/[0.03] rounded-full blur-[120px] pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center">
+        <div className="hero-nebula" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00FF87]/10 border border-[#00FF87]/20 text-[#00FF87] text-sm font-medium mb-5">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="text-xs font-mono">Live Hackathons</span>
+            <div className="dash-terminal justify-center mb-4">
+              <span>$ hacktrack discover</span>
+              <span className="cursor"></span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#E8EAF0] mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded card-glow text-purple-300 text-sm font-medium mb-5">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="text-xs mono">Live Hackathons</span>
+            </div>
+            <h1 className="pixel text-lg sm:text-xl lg:text-2xl text-[#E8EAF0] mb-4" style={{ textShadow: '0 0 30px rgba(123,47,255,0.4)', lineHeight: '1.6' }}>
               Discover{" "}
-              <span className="glow-text">Open Hackathons</span>
+              <span style={{ color: 'var(--cyan-accent)' }}>Open Hackathons</span>
             </h1>
-            <p className="text-[#7A8099] text-base max-w-xl mx-auto">
+            <p className="text-[#8888bb] text-sm mono max-w-xl mx-auto">
               Browse hackathons from Devfolio, DevPost, Unstop & more.
               Track the ones you love.
             </p>
@@ -465,7 +469,7 @@ export default function DiscoverPage() {
               placeholder="Search hackathons..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1A1F2E] border border-[#1E2330] text-[#E8EAF0] text-sm placeholder-[#454D66] focus:outline-none focus:border-[#00FF87]/40 focus:ring-1 focus:ring-[#00FF87]/20 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-[#E8EAF0] text-sm placeholder-[#454D66] input-terminal transition-all"
             />
           </div>
 
@@ -591,7 +595,7 @@ export default function DiscoverPage() {
                         onClick={() => setPage(pageNum)}
                         className={`w-8 h-8 rounded-lg text-xs font-medium flex items-center justify-center transition-all ${
                           page === pageNum
-                            ? "bg-[#00FF87] text-[#0F1117]"
+                            ? "page-active-purple"
                             : "text-[#7A8099] hover:bg-[#1A1F2E] hover:text-[#E8EAF0]"
                         }`}
                       >
@@ -617,13 +621,13 @@ export default function DiscoverPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-[#1E2330] py-8">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm text-[#7A8099]">
+      <footer className="border-t py-8" style={{ borderColor: 'rgba(123,47,255,0.15)' }}>
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm text-[#8888bb]">
           <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-[#00FF87]" />
-            <span>HackTrack</span>
+            <Terminal className="w-4 h-4 text-purple-400" />
+            <span className="pixel text-[8px]">HACKTRACK</span>
           </div>
-          <p>Built with ❤️ for hackers</p>
+          <p className="mono text-xs">Built with ❤️ for hackers</p>
         </div>
       </footer>
     </div>

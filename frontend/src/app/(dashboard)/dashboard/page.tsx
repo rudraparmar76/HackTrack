@@ -260,15 +260,19 @@ export default function DashboardPage() {
       {/* Page title */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#E8EAF0]">Dashboard</h1>
-          <p className="text-sm text-[#7A8099] mt-1">Your hackathon command center</p>
+          <div className="dash-terminal mb-2">
+            <span>$ hacktrack status</span>
+            <span className="cursor"></span>
+          </div>
+          <h1 className="dash-heading">Dashboard</h1>
+          <p className="text-sm text-[#8888bb] mt-2 mono">Your hackathon command center</p>
         </div>
         {profileUsername && (
           <Button
             variant="outline"
             size="sm"
             onClick={handleShareProfile}
-            className="w-full sm:w-auto gap-2 text-xs border-[#1E2330] hover:border-[#00FF87]/30 hover:text-[#00FF87]"
+            className="w-full sm:w-auto gap-2 text-xs mono" style={{ borderColor: 'rgba(123,47,255,0.25)', color: '#8888bb' }}
           >
             <Share2 className="w-3.5 h-3.5" />
             {shareCopied ? "Copied!" : "Share Profile"}
@@ -284,7 +288,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className={`hack-card rounded-xl p-4 sm:p-5 ${stat.key === "total" ? "hero-glow" : ""}`}
+            className={`hack-card dash-card-glow rounded-xl p-4 sm:p-5 ${stat.key === "total" ? "hero-glow" : ""}`}
           >
             <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3 relative z-10">
               <span className="text-xs sm:text-sm text-[#7A8099] leading-tight break-words">{stat.label}</span>
@@ -301,8 +305,8 @@ export default function DashboardPage() {
 
       {/* Controls */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-        <Tabs value={filter} onValueChange={setFilter} className="w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
-          <TabsList className="bg-[#1A1F2E] border border-[#1E2330] flex w-max sm:w-auto">
+        <Tabs value={filter} onValueChange={setFilter} className="purple-tabs w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
+          <TabsList className="bg-[#0a0520] border border-purple-500/15 flex w-max sm:w-auto">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="building">Building</TabsTrigger>
             <TabsTrigger value="submitted">Submitted</TabsTrigger>
@@ -368,7 +372,7 @@ export default function DashboardPage() {
                 transition={{ delay: i * 0.05 }}
               >
                 <Link href={`/hackathon/${hack.id}`}>
-                  <div className={`hack-card rounded-xl overflow-hidden cursor-pointer group ${hack.won ? 'ring-2 ring-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.2)]' : ''}`}>
+                  <div className={`hack-card dash-card-glow rounded-xl overflow-hidden cursor-pointer group ${hack.won ? 'ring-2 ring-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.2)]' : ''}`}>
                     {/* Banner */}
                     <div className="relative h-36 bg-[#151820] overflow-hidden">
                       {hack.banner_url ? (

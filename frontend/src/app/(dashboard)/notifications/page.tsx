@@ -44,11 +44,15 @@ export default function NotificationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#E8EAF0]">Notifications</h1>
-          <p className="text-sm text-[#7A8099]">{unread.length} unread</p>
+          <div className="dash-terminal mb-2">
+            <span>$ tail -f ALERTS</span>
+            <span className="cursor"></span>
+          </div>
+          <h1 className="dash-heading">Notifications</h1>
+          <p className="text-sm text-[#8888bb] mt-2 mono">{unread.length} unread</p>
         </div>
         {unread.length > 0 && (
-          <Button variant="outline" size="sm" onClick={markAllRead} className="gap-2">
+          <Button variant="outline" size="sm" onClick={markAllRead} className="gap-2 mono text-xs" style={{ borderColor: 'rgba(123,47,255,0.25)' }}>
             <CheckCheck className="w-4 h-4" /> Mark all read
           </Button>
         )}
@@ -70,9 +74,9 @@ export default function NotificationsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className={`hack-card rounded-xl p-4 flex items-center gap-3 ${!n.read ? "border-l-[3px] border-l-[#00FF87]" : "opacity-60"}`}
+              className={`hack-card dash-card-glow rounded-xl p-4 flex items-center gap-3 ${!n.read ? "border-l-[3px] unread-purple" : "opacity-60"}`}
             >
-              <div className={`w-2 h-2 rounded-full shrink-0 ${!n.read ? "bg-[#00FF87] pulse-dot" : "bg-[#454D66]"}`} />
+              <div className={`w-2 h-2 rounded-full shrink-0 ${!n.read ? "bg-purple-400 pulse-dot" : "bg-[#454D66]"}`} />
               <div className="flex-1">
                 <p className="text-sm text-[#E8EAF0]">{n.message}</p>
                 <p className="text-xs text-[#454D66] mt-0.5 font-mono">{formatDate(n.created_at)}</p>

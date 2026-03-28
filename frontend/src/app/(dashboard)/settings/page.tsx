@@ -170,7 +170,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00FF87]" />
+        <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
       </div>
     );
   }
@@ -178,19 +178,23 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-[#E8EAF0]">
-          <Settings className="w-6 h-6 text-[#00FF87]" /> Settings
+        <div className="dash-terminal mb-2">
+          <span>$ vi CONFIG</span>
+          <span className="cursor"></span>
+        </div>
+        <h1 className="dash-heading flex items-center gap-3">
+          <Settings className="w-5 h-5 text-purple-400" /> Settings
         </h1>
-        <p className="text-sm text-[#7A8099]">Manage your account and public profile</p>
+        <p className="text-sm text-[#8888bb] mt-2 mono">Manage your account and public profile</p>
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex gap-1 bg-[#1A1F2E] p-1 rounded-xl border border-[#1E2330] w-fit">
+      <div className="flex gap-1 bg-[#0a0520] p-1 rounded-xl border border-purple-500/15 w-fit">
         <button
           onClick={() => setActiveTab("account")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             activeTab === "account"
-              ? "bg-[#00FF87]/10 text-[#00FF87]"
+              ? "bg-purple-500/10 text-purple-400"
               : "text-[#7A8099] hover:text-[#E8EAF0]"
           }`}
         >
@@ -201,7 +205,7 @@ export default function SettingsPage() {
           onClick={() => setActiveTab("profile")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             activeTab === "profile"
-              ? "bg-[#00FF87]/10 text-[#00FF87]"
+              ? "bg-purple-500/10 text-purple-400"
               : "text-[#7A8099] hover:text-[#E8EAF0]"
           }`}
         >
@@ -212,11 +216,11 @@ export default function SettingsPage() {
 
       {/* Account Tab */}
       {activeTab === "account" && (
-        <div className="hack-card rounded-xl p-6 space-y-6">
+        <div className="hack-card dash-card-glow rounded-xl p-6 space-y-6">
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16">
               <AvatarImage src={avatarUrl} />
-              <AvatarFallback className="bg-[#00FF87]/10 text-[#00FF87] text-xl font-bold">
+              <AvatarFallback className="bg-purple-500/10 text-purple-400 text-xl font-bold">
                 {(name || email || "U").charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>

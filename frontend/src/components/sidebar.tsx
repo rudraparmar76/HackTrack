@@ -78,7 +78,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   return (
     <aside 
-      className={`fixed left-0 top-0 h-screen w-[220px] bg-[#151820] border-r border-[#1E2330] flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
+      className={`sidebar-dark fixed left-0 top-0 h-screen w-[220px] border-r flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
@@ -87,18 +87,18 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         href={user ? "/dashboard" : "/"}
         className="flex items-center gap-2.5 px-5 py-5 group"
       >
-        <div className="w-8 h-8 rounded-lg bg-[#00FF87]/10 border border-[#00FF87]/20 flex items-center justify-center group-hover:bg-[#00FF87]/15 transition-colors">
-          <Terminal className="w-4 h-4 text-[#00FF87]" />
+        <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/15 transition-colors">
+          <Terminal className="w-4 h-4 text-purple-400" />
         </div>
-        <span className="text-base font-bold text-[#E8EAF0] tracking-tight">
-          Hack<span className="text-[#00FF87]">Track</span>
+        <span className="pixel text-[10px] text-[#E8EAF0] tracking-wide">
+          HACK<span className="text-purple-400">TRACK</span>
         </span>
       </Link>
 
       {/* Add Hackathon CTA */}
       <div className="px-4 mb-4 mt-4 md:mt-0">
         <Link href="/hackathon/new" onClick={() => setIsOpen?.(false)}>
-          <button className="w-full flex items-center justify-center gap-2 h-9 rounded-lg bg-[#00FF87] text-[#0F1117] text-sm font-semibold hover:bg-[#00FF87]/90 transition-colors">
+          <button className="btn-purple w-full flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-semibold">
             <Plus className="w-4 h-4" />
             Add Hackathon
           </button>
@@ -116,19 +116,19 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               onClick={() => setIsOpen?.(false)}
               className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 active
-                  ? "text-[#00FF87] bg-[#00FF87]/5"
+                  ? "sidebar-link-active"
                   : "text-[#7A8099] hover:text-[#E8EAF0] hover:bg-white/[0.02]"
               }`}
             >
               {/* Active left border */}
               {active && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-[#00FF87]" />
+                <div className="sidebar-active-bar absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full" />
               )}
               <item.icon className="w-[18px] h-[18px]" />
               <span>{item.label}</span>
               {/* Notification badge */}
               {item.href === "/notifications" && unreadCount > 0 && (
-                <span className="ml-auto w-5 h-5 rounded-full bg-[#00FF87]/20 text-[#00FF87] text-[10px] font-bold flex items-center justify-center">
+                <span className="badge-purple ml-auto w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -139,13 +139,13 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       {/* User Profile */}
       {user && (
-        <div className="px-3 pb-4 pt-3 border-t border-[#1E2330]">
+        <div className="px-3 pb-4 pt-3 border-t divider-purple">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/[0.03] transition-colors">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={user.user_metadata?.avatar_url} />
-                  <AvatarFallback className="bg-[#00FF87]/10 text-[#00FF87] text-xs font-bold">
+                  <AvatarFallback className="bg-purple-500/10 text-purple-400 text-xs font-bold">
                     {(
                       user.user_metadata?.name ||
                       user.email ||
