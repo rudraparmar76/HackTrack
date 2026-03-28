@@ -34,7 +34,7 @@ select cron.schedule(
   '0 6 * * *',
   $$
   select net.http_post(
-    url := 'https://hack-trackk-backend.vercel.app/api/cron/reminder-dispatch',
+    url := 'https://www.hack-track.tech/api/cron/reminder-dispatch',
     headers := jsonb_build_object(
       'Authorization', 'Bearer 3c65259151824d7789033ef8ed0786c1af01ffbf801f482f97ac734251ce820b',
       'Content-Type', 'application/json'
@@ -50,7 +50,7 @@ select cron.schedule(
   '0 7 * * *',
   $$
   select net.http_post(
-    url := 'https://hack-trackk-backend.vercel.app/api/cron/daily-deadlines',
+    url := 'https://www.hack-track.tech/api/cron/daily-deadlines',
     headers := jsonb_build_object(
       'Authorization', 'Bearer 3c65259151824d7789033ef8ed0786c1af01ffbf801f482f97ac734251ce820b',
       'Content-Type', 'application/json'

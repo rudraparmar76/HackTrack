@@ -116,7 +116,8 @@ async function insertDefaultChecklist(hackathonId: string) {
     checked: false,
     order_index: idx,
   }));
-  await supabase.from("checklist_items").insert(rows);
+  const { data } = await supabase.from("checklist_items").insert(rows).select("*");
+  return data || [];
 }
 
 async function getUserEmail(userId: string): Promise<string | null> {
@@ -1083,7 +1084,14 @@ app.get("/api/hackathons/:id/checklist", async (req, res) => {
     .order("order_index", { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data || []);
+  
+  // If no items exist, this might be an older tracked hackathon. Auto-populate!
+  if (!data || data.length === 0) {
+    const insertedItems = await insertDefaultChecklist(req.params.id);
+    return res.json(insertedItems.length > 0 ? insertedItems : []);
+  }
+
+  res.json(data);
 });
 
 app.post("/api/hackathons/:id/checklist", async (req, res) => {
@@ -1193,17 +1201,22 @@ app.get("/api/hackathons/:id/lft", async (req, res) => {
   // 2. Find all local hackathon IDs that represent this same global hackathon
   let matchingIds = [req.params.id];
   
-  if (currentHackathon.url) {
-    const { data: matches } = await supabase
-      .from("hackathons")
-      .select("id")
-      .eq("url", currentHackathon.url);
-    if (matches) matchingIds = matches.map((m: any) => m.id);
-  } else if (currentHackathon.name) {
+  if (currentHackathon.name) {
+    // Match by exact name first, as URLs might have trailing slash differences
     const { data: matches } = await supabase
       .from("hackathons")
       .select("id")
       .eq("name", currentHackathon.name);
+      
+    if (matches && matches.length > 0) {
+      matchingIds = matches.map((m: any) => m.id);
+    }
+  } else if (currentHackathon.url) {
+    // Fallback to URL if name is somehow missing
+    const { data: matches } = await supabase
+      .from("hackathons")
+      .select("id")
+      .eq("url", currentHackathon.url);
     if (matches) matchingIds = matches.map((m: any) => m.id);
   }
 
