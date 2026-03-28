@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import SubmissionChecklist from "@/components/submission-checklist";
+import FindTeammates from "@/components/find-teammates";
 
 interface Hackathon {
   id: string; name: string; url: string | null; platform: string | null;
@@ -617,6 +618,7 @@ export default function HackathonDetailPage() {
         <TabsList className="bg-[#1A1F2E] border border-[#1E2330]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="checklist">Checklist</TabsTrigger>
+          <TabsTrigger value="teammates">Find Teammates</TabsTrigger>
           <TabsTrigger value="team">Team ({team.length})</TabsTrigger>
           <TabsTrigger value="progress">Progress</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
@@ -946,6 +948,11 @@ export default function HackathonDetailPage() {
         {/* Checklist Tab */}
         <TabsContent value="checklist" className="mt-6">
           <SubmissionChecklist hackathonId={hackathonId} />
+        </TabsContent>
+
+        {/* Find Teammates Tab */}
+        <TabsContent value="teammates" className="mt-6">
+          <FindTeammates hackathonId={hackathonId} />
         </TabsContent>
 
         {/* Team Tab */}

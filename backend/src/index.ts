@@ -1176,6 +1176,114 @@ app.patch("/api/hackathons/:id/checklist/reorder", async (req, res) => {
   res.json({ success: true });
 });
 
+// ============ LOOKING FOR TEAM (LFT) ============
+app.get("/api/hackathons/:id/lft", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { data, error } = await supabase
+    .from("lft_posts")
+    .select("*")
+    .eq("hackathon_id", req.params.id)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Attach display name for each post's user
+  const posts = data || [];
+  const userIds = [...new Set(posts.map((p: any) => p.user_id))];
+  const nameMap = new Map<string, { name: string; avatar_url: string | null }>();
+  for (const uid of userIds) {
+    const { data: userData } = await supabase.auth.admin.getUserById(uid);
+    if (userData?.user) {
+      const meta = userData.user.user_metadata || {};
+      nameMap.set(uid, {
+        name: (meta.full_name as string) || (meta.name as string) || userData.user.email?.split("@")[0] || "User",
+        avatar_url: (meta.avatar_url as string) || null,
+      });
+    }
+  }
+
+  const enriched = posts.map((p: any) => ({
+    ...p,
+    display_name: nameMap.get(p.user_id)?.name || "User",
+    avatar_url: nameMap.get(p.user_id)?.avatar_url || null,
+    is_own: p.user_id === user.id,
+  }));
+
+  res.json(enriched);
+});
+
+app.post("/api/hackathons/:id/lft", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const skills = Array.isArray(req.body.skills) ? req.body.skills.map((s: any) => String(s).trim()).filter(Boolean) : [];
+  const lookingFor = Array.isArray(req.body.looking_for) ? req.body.looking_for.map((s: any) => String(s).trim()).filter(Boolean) : [];
+  const message = String(req.body.message || "").trim().slice(0, 300);
+  const discordHandle = req.body.discord_handle ? String(req.body.discord_handle).trim() : null;
+  const twitterHandle = req.body.twitter_handle ? String(req.body.twitter_handle).trim() : null;
+
+  if (skills.length === 0) return res.status(400).json({ error: "At least one skill is required" });
+  if (lookingFor.length === 0) return res.status(400).json({ error: "At least one role needed is required" });
+  if (!message) return res.status(400).json({ error: "Message is required" });
+
+  const { data, error } = await supabase
+    .from("lft_posts")
+    .upsert(
+      {
+        hackathon_id: req.params.id,
+        user_id: user.id,
+        skills,
+        looking_for: lookingFor,
+        message,
+        discord_handle: discordHandle,
+        twitter_handle: twitterHandle,
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "hackathon_id,user_id" }
+    )
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.delete("/api/lft/:postId", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { data, error } = await supabase
+    .from("lft_posts")
+    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .eq("id", req.params.postId)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data) return res.status(404).json({ error: "Post not found" });
+  res.json({ success: true });
+});
+
+app.get("/api/lft/mine", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { data, error } = await supabase
+    .from("lft_posts")
+    .select("*, hackathons(name)")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
 // ============ AI IDEA GENERATOR ============
 app.post("/api/hackathons/:id/generate-ideas", async (req, res) => {
   const user = await getUserFromToken(req.headers.authorization);
