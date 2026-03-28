@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import crypto from "crypto";
+import Groq from "groq-sdk";
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const resendFrom = process.env.RESEND_FROM_EMAIL || "HackTrack <info@hack-track.tech>";
+const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
 
 const allowedOrigins = new Set([
   "http://localhost:3000",
@@ -1038,6 +1040,147 @@ app.patch("/api/notifications/read-all", async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
+});
+
+// ============ AI IDEA GENERATOR ============
+app.post("/api/hackathons/:id/generate-ideas", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  if (!groq) return res.status(500).json({ error: "AI service not configured" });
+
+  const hackathonId = req.params.id;
+
+  try {
+    // Verify hackathon access
+    const { data: hackathon, error: hackError } = await supabase
+      .from("hackathons")
+      .select("id, name, prize_pool, user_id")
+      .eq("id", hackathonId)
+      .single();
+
+    if (hackError || !hackathon) return res.status(404).json({ error: "Hackathon not found" });
+
+    // Check access: owner or team member
+    let hasAccess = hackathon.user_id === user.id;
+    if (!hasAccess && user.email) {
+      const { data: membership } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("hackathon_id", hackathonId)
+        .eq("email", user.email.toLowerCase())
+        .maybeSingle();
+      hasAccess = Boolean(membership);
+    }
+    if (!hasAccess) return res.status(403).json({ error: "Access denied" });
+
+    // Rate limit: max 3 generations per user per hackathon
+    const { count, error: countError } = await supabase
+      .from("hackathon_ideas")
+      .select("id", { count: "exact", head: true })
+      .eq("hackathon_id", hackathonId)
+      .eq("user_id", user.id);
+
+    if (countError) return res.status(500).json({ error: countError.message });
+    if ((count || 0) >= 3) {
+      return res.status(429).json({ error: "Generation limit reached (3/3). You've used all your idea generations for this hackathon." });
+    }
+
+    // Fetch problem statements
+    const { data: problems } = await supabase
+      .from("problem_statements")
+      .select("title, track")
+      .eq("hackathon_id", hackathonId);
+
+    if (!problems || problems.length === 0) {
+      return res.status(400).json({ error: "Add problem statements first to get targeted ideas" });
+    }
+
+    // Build prompt
+    const systemPrompt = "You are a hackathon mentor who has judged 500+ hackathons. Generate practical, innovative, and winnable project ideas. Focus on ideas that are impressive but feasible within a typical 24-48 hour hackathon. Always return valid JSON only, no markdown formatting.";
+
+    const userPrompt = `Hackathon: ${hackathon.name}
+Problem statements/tracks: ${JSON.stringify(problems)}
+Prize: ${hackathon.prize_pool || "Not specified"}
+
+Generate 4 project ideas. For each idea return JSON with these exact fields:
+{
+  "title": string (catchy project name),
+  "tagline": string (one compelling sentence),
+  "track": string (which problem statement/track it targets),
+  "tech_stack": string[] (3-4 specific technologies),
+  "wow_factor": string (what makes judges pick this over others),
+  "difficulty": "beginner" | "intermediate" | "advanced",
+  "feasibility_hours": number (realistic hours to build MVP)
+}
+
+Return a JSON array of 4 ideas only. No markdown, no code fences, just the JSON array.`;
+
+    // Call Groq
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.8,
+      max_tokens: 2048,
+      response_format: { type: "json_object" },
+    });
+
+    const rawContent = chatCompletion.choices?.[0]?.message?.content || "[]";
+
+    // Parse the response
+    let ideas: any[];
+    try {
+      const parsed = JSON.parse(rawContent);
+      // Handle both direct array and { ideas: [...] } wrapper
+      ideas = Array.isArray(parsed) ? parsed : (parsed.ideas || parsed.projects || parsed.data || []);
+    } catch {
+      console.error("Failed to parse Groq response:", rawContent);
+      return res.status(500).json({ error: "AI returned invalid response. Please try again." });
+    }
+
+    if (!Array.isArray(ideas) || ideas.length === 0) {
+      return res.status(500).json({ error: "AI returned empty ideas. Please try again." });
+    }
+
+    // Save to database
+    const { data: saved, error: saveError } = await supabase
+      .from("hackathon_ideas")
+      .insert({
+        hackathon_id: hackathonId,
+        user_id: user.id,
+        ideas: ideas,
+      })
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error("Failed to save ideas:", saveError);
+      return res.status(500).json({ error: saveError.message });
+    }
+
+    res.json({ ideas, id: saved.id, generation: (count || 0) + 1 });
+  } catch (error: any) {
+    console.error("Generate ideas error:", error);
+    res.status(500).json({ error: error.message || "Failed to generate ideas" });
+  }
+});
+
+app.get("/api/hackathons/:id/ideas", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { data, error } = await supabase
+    .from("hackathon_ideas")
+    .select("*")
+    .eq("hackathon_id", req.params.id)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
 });
 
 // ============ PUBLIC HACKATHON DISCOVERY ============

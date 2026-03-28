@@ -39,6 +39,12 @@ import {
   Loader2,
   Edit,
   Pencil,
+  Sparkles,
+  RefreshCw,
+  Save,
+  Zap,
+  Brain,
+  Lightbulb,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -78,6 +84,24 @@ interface Note {
   id: string; content: string; updated_at: string;
 }
 
+interface GeneratedIdea {
+  title: string;
+  tagline: string;
+  track: string;
+  tech_stack: string[];
+  wow_factor: string;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  feasibility_hours: number;
+}
+
+interface IdeaGeneration {
+  id: string;
+  hackathon_id: string;
+  user_id: string;
+  ideas: GeneratedIdea[];
+  created_at: string;
+}
+
 const KANBAN_COLUMNS = [
   { key: "idea", label: "💡 Idea" },
   { key: "design", label: "🎨 Design" },
@@ -103,6 +127,13 @@ export default function HackathonDetailPage() {
   const [invites, setInvites] = useState<TeamInvite[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // AI Ideas state
+  const [aiIdeas, setAiIdeas] = useState<GeneratedIdea[]>([]);
+  const [generatingIdeas, setGeneratingIdeas] = useState(false);
+  const [ideasError, setIdeasError] = useState("");
+  const [generationCount, setGenerationCount] = useState(0);
+  const [savingIdeaIdx, setSavingIdeaIdx] = useState<number | null>(null);
 
   // Dialogs
   const [showAddMember, setShowAddMember] = useState(false);
@@ -209,6 +240,7 @@ export default function HackathonDetailPage() {
   }, [hackathonId, router, toast]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { if (hackathonId) fetchIdeas(); }, [hackathonId]);
 
   const handleDelete = async () => {
     if (!isOwner) return;
@@ -373,6 +405,73 @@ export default function HackathonDetailPage() {
     }
     setSavingNote(false);
     toast({ title: "Note saved" });
+  };
+
+  // AI Ideas
+  const fetchIdeas = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    try {
+      const res = await fetch(`${apiUrl}/api/hackathons/${hackathonId}/ideas`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setGenerationCount(data.length);
+        if (data.length > 0 && data[0].ideas) {
+          setAiIdeas(data[0].ideas);
+        }
+      }
+    } catch {}
+  };
+
+  const generateIdeas = async () => {
+    setGeneratingIdeas(true);
+    setIdeasError("");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setGeneratingIdeas(false); return; }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    try {
+      const res = await fetch(`${apiUrl}/api/hackathons/${hackathonId}/generate-ideas`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setIdeasError(data.error || "Failed to generate ideas");
+      } else {
+        setAiIdeas(data.ideas || []);
+        setGenerationCount(data.generation || generationCount + 1);
+        toast({ title: "Ideas generated!", description: "AI has suggested 4 project ideas for you." });
+      }
+    } catch (err: any) {
+      setIdeasError(err.message || "Failed to generate ideas");
+    } finally {
+      setGeneratingIdeas(false);
+    }
+  };
+
+  const saveIdeaToNotes = async (idea: GeneratedIdea, idx: number) => {
+    setSavingIdeaIdx(idx);
+    const ideaText = `\n\n--- AI Idea: ${idea.title} ---\n${idea.tagline}\nTrack: ${idea.track}\nTech: ${idea.tech_stack.join(", ")}\nWow Factor: ${idea.wow_factor}\nDifficulty: ${idea.difficulty} | ~${idea.feasibility_hours}h to build\n`;
+    const newContent = (noteContent || "") + ideaText;
+    setNoteContent(newContent);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSavingIdeaIdx(null); return; }
+    if (note) {
+      await supabase.from("notes").update({ content: newContent, updated_at: new Date().toISOString() }).eq("id", note.id);
+    } else {
+      const { data } = await supabase.from("notes").insert({
+        hackathon_id: hackathonId, user_id: user.id, content: newContent,
+      }).select().single();
+      if (data) setNote(data);
+    }
+    setSavingIdeaIdx(null);
+    toast({ title: "Idea saved to notes!", description: `"${idea.title}" added to your notes.` });
   };
 
   if (loading) {
@@ -619,6 +718,184 @@ export default function HackathonDetailPage() {
               )}
             </div>
           )}
+
+          {/* AI Project Ideas */}
+          <div className="hack-card rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FF87]/20 to-[#00D4FF]/20 flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-[#00FF87]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#E8EAF0]">AI Project Ideas</h3>
+                  <p className="text-[10px] text-[#454D66]">Powered by LLaMA 3.3</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {generationCount > 0 && (
+                  <span className="text-[10px] font-mono text-[#454D66] px-2 py-0.5 rounded-full bg-[#151820] border border-[#1E2330]">
+                    {generationCount}/3 used
+                  </span>
+                )}
+                {problems.length > 0 ? (
+                  <Button
+                    size="sm"
+                    onClick={generateIdeas}
+                    disabled={generatingIdeas || generationCount >= 3}
+                    className="gap-1.5 text-xs h-8 bg-gradient-to-r from-[#00FF87] to-[#00D4FF] text-[#0F1117] hover:opacity-90 font-semibold shadow-sm shadow-[#00FF87]/10 disabled:opacity-50"
+                  >
+                    {generatingIdeas ? (
+                      <><Loader2 className="w-3 h-3 animate-spin" /> Thinking...</>
+                    ) : generationCount >= 3 ? (
+                      <>Limit Reached</>
+                    ) : aiIdeas.length > 0 ? (
+                      <><RefreshCw className="w-3 h-3" /> Regenerate</>
+                    ) : (
+                      <><Sparkles className="w-3 h-3" /> Generate Ideas</>
+                    )}
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+
+            {/* No problem statements message */}
+            {problems.length === 0 && (
+              <div className="text-center py-8">
+                <Lightbulb className="w-10 h-10 text-[#1E2330] mx-auto mb-3" />
+                <p className="text-sm text-[#7A8099] mb-1">Add problem statements first</p>
+                <p className="text-xs text-[#454D66]">AI needs your hackathon&apos;s tracks to generate targeted ideas</p>
+              </div>
+            )}
+
+            {/* Error */}
+            {ideasError && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 mb-4">
+                <p className="text-sm text-red-400">{ideasError}</p>
+              </div>
+            )}
+
+            {/* Loading skeleton */}
+            {generatingIdeas && (
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-[#151820] rounded-xl p-4 border border-[#1E2330] animate-pulse">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#252A3A] shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-2/3 bg-[#252A3A] rounded" />
+                        <div className="h-3 w-full bg-[#252A3A] rounded" />
+                        <div className="flex gap-2">
+                          <div className="h-5 w-16 bg-[#252A3A] rounded-full" />
+                          <div className="h-5 w-20 bg-[#252A3A] rounded-full" />
+                          <div className="h-5 w-14 bg-[#252A3A] rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-center text-xs text-[#454D66] font-mono animate-pulse">Thinking of winning ideas...</p>
+              </div>
+            )}
+
+            {/* Idea cards */}
+            {!generatingIdeas && aiIdeas.length > 0 && (
+              <div className="space-y-3">
+                {aiIdeas.map((idea, idx) => {
+                  const difficultyColors: Record<string, string> = {
+                    beginner: "bg-[#00FF87]/15 text-[#00FF87] border-[#00FF87]/25",
+                    intermediate: "bg-[#EF9F27]/15 text-[#EF9F27] border-[#EF9F27]/25",
+                    advanced: "bg-red-500/15 text-red-400 border-red-500/25",
+                  };
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1, duration: 0.3 }}
+                      className="bg-[#151820] rounded-xl p-4 border border-[#1E2330] hover:border-[#2A3045] transition-all group"
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Number badge */}
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FF87]/15 to-[#00D4FF]/15 flex items-center justify-center text-xs font-bold text-[#00FF87] shrink-0 border border-[#00FF87]/10">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {/* Title + tagline */}
+                          <h4 className="text-sm font-semibold text-[#E8EAF0] mb-0.5 leading-snug">{idea.title}</h4>
+                          <p className="text-xs text-[#7A8099] mb-3 leading-relaxed">{idea.tagline}</p>
+
+                          {/* Track */}
+                          {idea.track && (
+                            <div className="mb-2.5">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#00FF87]/10 text-[#00FF87] border border-[#00FF87]/20">
+                                <Zap className="w-2.5 h-2.5" />
+                                {idea.track}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Tech stack pills */}
+                          <div className="flex flex-wrap gap-1.5 mb-2.5">
+                            {(idea.tech_stack || []).map((tech, ti) => (
+                              <span
+                                key={ti}
+                                className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#252A3A] text-[#7A8099] border border-[#2A3045]"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* Wow factor */}
+                          {idea.wow_factor && (
+                            <div className="flex items-start gap-1.5 mb-2.5 bg-[#EF9F27]/[0.06] rounded-lg px-3 py-2 border border-[#EF9F27]/10">
+                              <Sparkles className="w-3 h-3 text-[#EF9F27] mt-0.5 shrink-0" />
+                              <p className="text-[11px] text-[#EF9F27]/90 leading-relaxed">{idea.wow_factor}</p>
+                            </div>
+                          )}
+
+                          {/* Bottom row: difficulty + hours + save */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${difficultyColors[idea.difficulty] || difficultyColors.intermediate}`}>
+                                {idea.difficulty}
+                              </span>
+                              <span className="text-[10px] text-[#454D66] font-mono">
+                                ~{idea.feasibility_hours}h to build
+                              </span>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => saveIdeaToNotes(idea, idx)}
+                              disabled={savingIdeaIdx === idx}
+                              className="h-7 text-[10px] gap-1 text-[#7A8099] hover:text-[#00FF87] hover:bg-[#00FF87]/10"
+                            >
+                              {savingIdeaIdx === idx ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Save className="w-3 h-3" />
+                              )}
+                              Save to Notes
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Empty state after load (no previous ideas, has problems) */}
+            {!generatingIdeas && aiIdeas.length === 0 && problems.length > 0 && (
+              <div className="text-center py-8">
+                <Sparkles className="w-10 h-10 text-[#1E2330] mx-auto mb-3" />
+                <p className="text-sm text-[#7A8099] mb-1">No ideas generated yet</p>
+                <p className="text-xs text-[#454D66]">Click &quot;Generate Ideas&quot; to get AI-powered project suggestions</p>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* Team Tab */}
