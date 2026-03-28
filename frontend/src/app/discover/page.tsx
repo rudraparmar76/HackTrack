@@ -343,7 +343,7 @@ export default function DiscoverPage() {
           end_date: hackathon.end_date,
           registration_deadline: hackathon.registration_deadline,
           prize_pool: hackathon.prize_pool,
-          status: "upcoming",
+          status: "interested",
         }),
       });
 

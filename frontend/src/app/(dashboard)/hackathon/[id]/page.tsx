@@ -55,6 +55,7 @@ import {
 import { motion } from "framer-motion";
 import SubmissionChecklist from "@/components/submission-checklist";
 import FindTeammates from "@/components/find-teammates";
+import { HackathonPipeline, PipelineStatus } from "@/components/hackathon-pipeline";
 
 interface Hackathon {
   id: string; name: string; url: string | null; platform: string | null;
@@ -482,6 +483,34 @@ export default function HackathonDetailPage() {
     toast({ title: "Idea saved to notes!", description: `"${idea.title}" added to your notes.` });
   };
 
+  const updateHackathonStatus = async (statusData: { status: PipelineStatus; won?: boolean; placement?: string }) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    
+    // Optimistic update
+    setHackathon(prev => prev ? { ...prev, ...statusData } : null);
+
+    try {
+      const res = await fetch(`${apiUrl}/api/hackathons/${hackathonId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(statusData),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+      
+      const updated = await res.json();
+      setHackathon(updated);
+      toast({ title: "Status updated", description: `Hackathon marked as ${statusData.status}` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      fetchAll(); // Revert
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -502,6 +531,11 @@ export default function HackathonDetailPage() {
 
   return (
     <div className="space-y-6">
+      <HackathonPipeline 
+        currentStatus={hackathon.status as PipelineStatus} 
+        onUpdate={updateHackathonStatus} 
+      />
+
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">

@@ -46,6 +46,8 @@ interface Hackathon {
   team_size_min: number | null;
   team_size_max: number | null;
   status: string;
+  won: boolean;
+  placement: string | null;
   created_at: string;
   user_id: string;
   is_shared?: boolean;
@@ -53,10 +55,10 @@ interface Hackathon {
 }
 
 const statCards = [
-  { label: "Total", icon: Trophy, key: "total", accent: "text-[#E8EAF0]", bg: "bg-[#E8EAF0]/10" },
-  { label: "Active", icon: Zap, key: "active", accent: "text-[#00FF87]", bg: "bg-[#00FF87]/10" },
-  { label: "Upcoming", icon: Calendar, key: "upcoming", accent: "text-[#EF9F27]", bg: "bg-[#EF9F27]/10" },
-  { label: "Completed", icon: CheckCircle, key: "completed", accent: "text-[#454D66]", bg: "bg-[#454D66]/15" },
+  { label: "Wins 🏆", icon: Trophy, key: "wins", accent: "text-[#FFD700]", bg: "bg-[#FFD700]/10" },
+  { label: "Participated 📝", icon: Users, key: "participated", accent: "text-[#00D4FF]", bg: "bg-[#00D4FF]/10" },
+  { label: "Active 🔥", icon: Zap, key: "active", accent: "text-[#00FF87]", bg: "bg-[#00FF87]/10" },
+  { label: "Total", icon: CheckCircle, key: "total", accent: "text-[#454D66]", bg: "bg-[#454D66]/15" },
 ];
 
 export default function DashboardPage() {
@@ -67,6 +69,7 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("deadline");
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [apiStats, setApiStats] = useState({ total: 0, active: 0, participated: 0, wins: 0 });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -79,32 +82,24 @@ export default function DashboardPage() {
     sessionStorage.setItem("ht-urgent-dismissed", "1");
   };
 
-  const getDynamicStatus = (hackathon: any) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayTime = today.getTime();
-
-    const getNormalizedTime = (dateStr: string | null) => {
-      if (!dateStr) return null;
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return null;
-      // Use local date parts to avoid timezone shifts
-      const localD = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-      return localD.getTime();
-    };
-
-    const start = getNormalizedTime(hackathon.start_date);
-    const end = getNormalizedTime(hackathon.end_date) || getNormalizedTime(hackathon.submission_deadline);
-
-    if (end !== null && todayTime > end) return "completed";
-    if (start !== null && start > todayTime) return "upcoming";
-    if (start === null && end === null) return hackathon.status; // fallback
-    return "active";
-  };
-
   useEffect(() => {
     fetchHackathons();
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    try {
+      const res = await fetch(`${apiUrl}/api/stats`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        setApiStats(await res.json());
+      }
+    } catch {}
+  };
 
   const fetchHackathons = async () => {
     setLoading(true);
@@ -148,17 +143,10 @@ export default function DashboardPage() {
       }
     }
 
-    const allHackathons = [...owned, ...shared].map(h => ({ ...h, status: getDynamicStatus(h) }));
+    const allHackathons = [...owned, ...shared];
     setHackathons(allHackathons);
     setLoading(false);
   };
-
-  const stats = useMemo(() => ({
-    total: hackathons.length,
-    active: hackathons.filter((h) => h.status === "active").length,
-    upcoming: hackathons.filter((h) => h.status === "upcoming").length,
-    completed: hackathons.filter((h) => h.status === "completed").length,
-  }), [hackathons]);
 
   const filtered = useMemo(() => {
     let result = hackathons;
@@ -259,7 +247,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className={`text-3xl font-bold font-mono relative z-10 ${stat.key === "total" ? "glow-text" : "text-[#E8EAF0]"}`}>
-              {stats[stat.key as keyof typeof stats]}
+              {apiStats[stat.key as keyof typeof apiStats]}
             </p>
           </motion.div>
         ))}
@@ -270,9 +258,9 @@ export default function DashboardPage() {
         <Tabs value={filter} onValueChange={setFilter} className="w-full sm:w-auto">
           <TabsList className="bg-[#1A1F2E] border border-[#1E2330]">
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger value="building">Building</TabsTrigger>
+            <TabsTrigger value="submitted">Submitted</TabsTrigger>
+            <TabsTrigger value="won">Won 🏆</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -334,7 +322,7 @@ export default function DashboardPage() {
                 transition={{ delay: i * 0.05 }}
               >
                 <Link href={`/hackathon/${hack.id}`}>
-                  <div className="hack-card rounded-xl overflow-hidden cursor-pointer group">
+                  <div className={`hack-card rounded-xl overflow-hidden cursor-pointer group ${hack.won ? 'ring-2 ring-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.2)]' : ''}`}>
                     {/* Banner */}
                     <div className="relative h-36 bg-[#151820] overflow-hidden">
                       {hack.banner_url ? (

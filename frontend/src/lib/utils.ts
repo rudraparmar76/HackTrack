@@ -38,14 +38,25 @@ export function getCountdownClass(date: string | Date | null | undefined): strin
 }
 
 export function getStatusColor(status: string): string {
-  switch (status) {
+  switch (status?.toLowerCase()) {
     case "active":
+    case "submitted":
       return "bg-[#00FF87]/15 text-[#00FF87] border-[#00FF87]/30";
     case "upcoming":
+    case "building":
       return "bg-[#EF9F27]/15 text-[#EF9F27] border-[#EF9F27]/30";
+    case "registered":
+      return "bg-[#00D4FF]/15 text-[#00D4FF] border-[#00D4FF]/30";
+    case "ideating":
+      return "bg-[#A78BFA]/15 text-[#A78BFA] border-[#A78BFA]/30";
+    case "won":
+      return "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/30 shadow-[0_0_10px_rgba(255,215,0,0.15)]";
+    case "lost":
+      return "bg-red-500/15 text-red-500 border-red-500/30";
     case "completed":
-      return "bg-[#454D66]/20 text-[#454D66] border-[#454D66]/30";
     case "archived":
+    case "withdrew":
+    case "interested":
       return "bg-[#454D66]/20 text-[#454D66] border-[#454D66]/30";
     default:
       return "bg-[#454D66]/20 text-[#454D66] border-[#454D66]/30";

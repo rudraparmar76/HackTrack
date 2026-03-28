@@ -69,7 +69,7 @@ export default function NewHackathonPage() {
   const [prizePool, setPrizePool] = useState("");
   const [teamMin, setTeamMin] = useState("1");
   const [teamMax, setTeamMax] = useState("4");
-  const [status, setStatus] = useState("upcoming");
+  const [status, setStatus] = useState("interested");
   const [problemStatements, setProblemStatements] = useState<{ track: string; title: string }[]>([]);
   const [resourceLinks, setResourceLinks] = useState<{ text: string; url: string; type: string }[]>([]);
   const [inviteEmails, setInviteEmails] = useState("");
@@ -308,10 +308,14 @@ export default function NewHackathonPage() {
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
+                <SelectItem value="interested">Interested</SelectItem>
+                <SelectItem value="registered">Registered</SelectItem>
+                <SelectItem value="ideating">Ideating</SelectItem>
+                <SelectItem value="building">Building</SelectItem>
+                <SelectItem value="submitted">Submitted</SelectItem>
+                <SelectItem value="won">Won</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
+                <SelectItem value="withdrew">Withdrew</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -596,6 +596,33 @@ app.post("/api/scrape", async (req, res) => {
   }
 });
 
+// ============ STATS ============
+app.get("/api/stats", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { data, error } = await supabase
+    .from("hackathons")
+    .select("status, won")
+    .eq("user_id", user.id);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const hackathons = data || [];
+  
+  const wins = hackathons.filter(h => h.won === true || h.status === "won").length;
+  // Active = pipeline status is between registered and submitted
+  const active = hackathons.filter(h => 
+    ["registered", "ideating", "building", "submitted"].includes(h.status?.toLowerCase())
+  ).length;
+  // Participated = everything except interested
+  const participated = hackathons.filter(h => 
+    h.status && h.status.toLowerCase() !== "interested"
+  ).length;
+
+  res.json({ wins, active, participated, total: hackathons.length });
+});
+
 // ============ HACKATHONS ============
 // Middleware to extract user from auth header
 async function getUserFromToken(authHeader: string | undefined) {
