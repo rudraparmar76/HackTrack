@@ -601,14 +601,39 @@ app.get("/api/stats", async (req, res) => {
   const user = await getUserFromToken(req.headers.authorization);
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-  const { data, error } = await supabase
+  const { data: ownedData, error } = await supabase
     .from("hackathons")
-    .select("status, won")
+    .select("id, status, won")
     .eq("user_id", user.id);
 
   if (error) return res.status(500).json({ error: error.message });
 
-  const hackathons = data || [];
+  const owned = ownedData || [];
+  const ownedIds = new Set(owned.map((h: any) => h.id));
+
+  let shared: any[] = [];
+  if (user.email) {
+    const { data: memberships } = await supabase
+      .from("team_members")
+      .select("hackathon_id")
+      .eq("email", user.email.toLowerCase());
+
+    const sharedIds = (memberships || [])
+      .map((r: any) => r.hackathon_id)
+      .filter((id: string) => id && !ownedIds.has(id));
+
+    const uniqueSharedIds = [...new Set(sharedIds)] as string[];
+
+    if (uniqueSharedIds.length > 0) {
+      const { data: sharedData } = await supabase
+        .from("hackathons")
+        .select("id, status, won")
+        .in("id", uniqueSharedIds);
+      shared = sharedData || [];
+    }
+  }
+
+  const hackathons = [...owned, ...shared];
   
   const wins = hackathons.filter(h => h.won === true || h.status === "won").length;
   // Active = pipeline status is between registered and submitted
