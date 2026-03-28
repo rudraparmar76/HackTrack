@@ -1,85 +1,42 @@
-# HackTrack — Hackathon Command Center
+# HackTrack 🚀
 
-> A pro hacker's war room for tracking hackathons. Dark charcoal meets electric green.
+HackTrack is your all-in-one hackathon command center. From finding the perfect hackathon to building your idea, tracking progress, and bringing home the trophy, we've got you covered.
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?logo=tailwindcss)
-![Supabase](https://img.shields.io/badge/Supabase-Auth_&_DB-3FCF8E?logo=supabase)
+## ✨ Core Features
 
-## Features
+*   **Smart Link Scraper:** Paste an event link (Devfolio, DevPost, etc.) and our built-in AI will automatically extract all the crucial details like deadlines, prize pools, and tracks.
+*   **Live Hackathon Discovery:** An actively updated *Discover* page with live hackathons scraped directly from the web, so you don't even have to hunt for them.
+*   **Visual Dashboard & Kanban Progress:** Track your entire hackathon lifecycle across stages (`Interested`, `Building`, `Submitted`, `Won`) with a clean, drag-and-drop workflow.
+*   **Live Countdown Timers:** Never miss a deadline again. Smart countdowns alert you about impending registration and submission cutoffs.
+*   **Team Collaboration:** Invite friends to your hackathon workspace via email. Shared visibility ensures everyone is on the same page.
+*   **Rich Notes System:** A unified place to capture your brainstormed ideas, API keys, tech stack decisions, and mentor feedback.
+*   **AI Idea Generator:** Stuck on a problem statement? Use our generative AI tools to spin up winning project ideas.
+*   **Public Profiles:** Showcase your hackathon wins, participation stats, and portfolio proudly by sharing your public `hack-track.tech/u/[username]` link.
 
-- **Smart Link Scraper** — Paste any hackathon URL and auto-extract dates, prizes, tracks
-- **Visual Dashboard** — Status filters, countdown timers, and smart sorting
-- **Kanban Progress** — Drag tasks from Idea → Design → Building → Testing → Submitted
-- **Team Management** — Add members, assign roles, track capacity
-- **Smart Reminders** — Auto-reminders for deadlines and announcements
-- **Rich Notes** — Per-hackathon notes for ideas, tech stack, API keys
+## 🗺️ App Navigation & Pages
 
-## Design System
+The application is structured around a fast, responsive Next.js frontend and a resilient Express backend:
 
-| Token | Value |
-|---|---|
-| Background Page | `#0F1117` |
-| Background Card | `#1A1F2E` |
-| Background Sidebar | `#151820` |
-| Accent Green | `#00FF87` |
-| Accent Cyan | `#00D4FF` |
-| Accent Amber | `#EF9F27` |
-| Font UI | DM Sans |
-| Font Mono | JetBrains Mono |
+### Marketing & Onboarding
+*   🏠 **Landing Page (`/`)**: A sleek, animated overview of HackTrack's features.
+*   🌟 **Discover (`/discover`)**: Browse through open hackathons collected from various platforms.
+*   🔐 **Authentication (`/login`)**: Seamless sign in / sign up flow powered by Supabase Auth.
 
-## Tech Stack
+### Core Application (Protected)
+*   📊 **Dashboard (`/dashboard`)**: Your personal command center displaying key stats, upcoming deadlines, and tracked hackathons.
+*   ➕ **Track New Hackathon (`/hackathon/new`)**: The hub to paste links for auto-scraping or to add hackathons manually.
+*   🖥️ **Hackathon Workspace (`/hackathon/[id]`)**: Deep-dive into a specific hackathon. Manage the kanban board, organize your team, write notes, and edit details.
+*   ⏰ **Reminders (`/reminders`)**: Your personal push notification settings and timeline for various events.
 
-- **Framework:** Next.js 14 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS + Custom CSS
-- **UI Components:** Radix UI / shadcn-ui
-- **Animations:** Framer Motion
-- **Backend:** Supabase (Auth, Postgres, Realtime)
-- **Scraper:** FastAPI + BeautifulSoup (separate service)
+### Social & Settings
+*   🔔 **Notifications (`/notifications`)**: Alerts for upcoming deadlines and team invites.
+*   🤝 **Team Invites (`/invite`)**: Securely manage and accept incoming team invitations.
+*   ⚙️ **Settings (`/settings`)**: Configure your user profile, avatar, and app preferences.
+*   👤 **Public Profile (`/u/[username]`)**: A fully public shareable page highlighting a user's track record and wins.
 
-## Getting Started
+## 🛠️ Tech Stack
 
-```bash
-cd frontend
-npm install
-cp .env.local.example .env.local  # Add your Supabase keys
-npm run dev
-```
-
-## Environment Variables
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_API_URL=http://localhost:4000
-```
-
-## Project Structure
-
-```
-frontend/
-├── src/
-│   ├── app/
-│   │   ├── (dashboard)/      # Auth-protected pages
-│   │   │   ├── dashboard/    # Main dashboard
-│   │   │   ├── hackathon/    # Detail & new hackathon
-│   │   │   ├── reminders/    # Reminder management
-│   │   │   ├── notifications/# Notification center
-│   │   │   └── settings/     # Profile settings
-│   │   ├── login/            # Auth page
-│   │   └── page.tsx          # Landing page
-│   ├── components/
-│   │   ├── sidebar.tsx       # Main navigation
-│   │   └── ui/               # shadcn/ui primitives
-│   └── lib/
-│       ├── utils.ts          # Helpers & color utilities
-│       └── supabase/         # Supabase client config
-├── tailwind.config.js
-└── package.json
-```
-
-## License
-
-Private — All rights reserved.
+*   **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion, shadcn/ui
+*   **Backend**: Node.js, Express, TypeScript
+*   **Database & Auth**: Supabase (PostgreSQL, Row Level Security, Auth)
+*   **AI Integrations**: LLaMA via Groq API

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   Terminal,
@@ -12,6 +13,8 @@ import {
   Kanban,
   ArrowRight,
   Sparkles,
+  Menu,
+  X,
 } from "lucide-react";
 
 const features = [
@@ -69,6 +72,8 @@ const fadeIn = {
 };
 
 export default function LandingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0F1117]">
       {/* Hero Section */}
@@ -86,7 +91,7 @@ export default function LandingPage() {
               Hack<span className="text-[#00FF87]">Track</span>
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-3">
             <Link href="/discover">
               <Button variant="outline" className="border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
                 Browse Hackathons
@@ -98,7 +103,41 @@ export default function LandingPage() {
               </Button>
             </Link>
           </div>
+          
+          <div className="sm:hidden flex items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-[#E8EAF0] hover:bg-[#1A1F2E] rounded-md transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </nav>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="sm:hidden overflow-hidden bg-[#0F1117]/95 border-b border-[#1E2330] backdrop-blur-xl absolute top-full left-0 right-0 z-50"
+            >
+              <div className="px-4 py-4 flex flex-col gap-3">
+                <Link href="/discover" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full justify-start border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
+                    Browse Hackathons
+                  </Button>
+                </Link>
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full justify-start border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
+                    Sign In
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32 text-center">
           <motion.div
