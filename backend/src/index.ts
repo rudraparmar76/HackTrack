@@ -1663,6 +1663,216 @@ app.all("/api/cron/scrape-hackathons", async (req, res) => {
   }
 });
 
+// ============ PROFILE ============
+app.get("/api/profile/me", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, email, name, avatar_url, username, display_name, bio, github_url, linkedin_url, twitter_url, is_public, created_at")
+    .eq("id", user.id)
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.put("/api/profile/me", async (req, res) => {
+  const user = await getUserFromToken(req.headers.authorization);
+  if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+  const { username, display_name, bio, github_url, linkedin_url, twitter_url, is_public } = req.body;
+
+  // Validate username
+  if (username !== undefined) {
+    if (typeof username !== "string" || username.length < 3 || username.length > 30) {
+      return res.status(400).json({ error: "Username must be 3–30 characters" });
+    }
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(username) && username.length > 2) {
+      return res.status(400).json({ error: "Username must be lowercase alphanumeric with hyphens, cannot start/end with hyphen" });
+    }
+    // Check uniqueness
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", username)
+      .neq("id", user.id)
+      .maybeSingle();
+    if (existing) {
+      return res.status(409).json({ error: "Username is already taken" });
+    }
+  }
+
+  // Validate bio
+  if (bio !== undefined && typeof bio === "string" && bio.length > 200) {
+    return res.status(400).json({ error: "Bio must be 200 characters or less" });
+  }
+
+  const updates: Record<string, any> = {};
+  if (username !== undefined) updates.username = username;
+  if (display_name !== undefined) updates.display_name = display_name;
+  if (bio !== undefined) updates.bio = bio;
+  if (github_url !== undefined) updates.github_url = github_url || null;
+  if (linkedin_url !== undefined) updates.linkedin_url = linkedin_url || null;
+  if (twitter_url !== undefined) updates.twitter_url = twitter_url || null;
+  if (is_public !== undefined) updates.is_public = Boolean(is_public);
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: "No fields to update" });
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", user.id)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.get("/api/public/profile/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    // Fetch public profile
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, bio, github_url, linkedin_url, twitter_url, is_public, created_at")
+      .eq("username", username)
+      .eq("is_public", true)
+      .single();
+
+    if (profileError || !profile) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    // Fetch user's public hackathons
+    const { data: hackathons } = await supabase
+      .from("hackathons")
+      .select("id, name, status, won, placement, platform, tags, start_date, end_date, created_at")
+      .eq("user_id", profile.id)
+      .eq("is_public", true)
+      .order("created_at", { ascending: false });
+
+    const allHackathons = hackathons || [];
+
+    // Compute stats
+    const participated = allHackathons.filter(
+      (h: any) => h.status && h.status.toLowerCase() !== "interested"
+    );
+    const wins = allHackathons.filter(
+      (h: any) => h.won === true || h.status === "won"
+    );
+    const winRate =
+      participated.length > 0
+        ? Math.round((wins.length / participated.length) * 100) + "%"
+        : "0%";
+
+    // Unique platforms
+    const platforms = [
+      ...new Set(
+        allHackathons
+          .map((h: any) => h.platform)
+          .filter(Boolean)
+      ),
+    ] as string[];
+
+    // Top domains from tags
+    const tagCounts = new Map<string, number>();
+    for (const h of allHackathons) {
+      const tags = (h as any).tags || [];
+      for (const tag of tags) {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      }
+    }
+    const topDomains = [...tagCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([tag]) => tag);
+
+    // Also pull tracks from problem_statements as fallback domains
+    if (topDomains.length < 5) {
+      const hackathonIds = allHackathons.map((h: any) => h.id);
+      if (hackathonIds.length > 0) {
+        const { data: problems } = await supabase
+          .from("problem_statements")
+          .select("track")
+          .in("hackathon_id", hackathonIds)
+          .not("track", "is", null);
+        if (problems) {
+          for (const p of problems) {
+            const track = (p as any).track;
+            if (track && !topDomains.includes(track)) {
+              topDomains.push(track);
+              if (topDomains.length >= 5) break;
+            }
+          }
+        }
+      }
+    }
+
+    // Streak: consecutive calendar months with at least one hackathon
+    let streak = 0;
+    if (allHackathons.length > 0) {
+      const months = new Set<string>();
+      for (const h of allHackathons) {
+        const date = (h as any).start_date || (h as any).created_at;
+        if (date) {
+          const d = new Date(date);
+          months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+        }
+      }
+      const sortedMonths = [...months].sort().reverse();
+      if (sortedMonths.length > 0) {
+        streak = 1;
+        for (let i = 1; i < sortedMonths.length; i++) {
+          const [y1, m1] = sortedMonths[i - 1].split("-").map(Number);
+          const [y2, m2] = sortedMonths[i].split("-").map(Number);
+          const diff = (y1 - y2) * 12 + (m1 - m2);
+          if (diff === 1) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    // Recent hackathons (last 6)
+    const recentHackathons = allHackathons.slice(0, 6).map((h: any) => ({
+      name: h.name,
+      status: h.status,
+      placement: h.placement,
+      platform: h.platform,
+    }));
+
+    res.json({
+      display_name: profile.display_name,
+      username: profile.username,
+      bio: profile.bio,
+      github_url: profile.github_url,
+      linkedin_url: profile.linkedin_url,
+      twitter_url: profile.twitter_url,
+      created_at: profile.created_at,
+      stats: {
+        total_participated: participated.length,
+        wins: wins.length,
+        win_rate: winRate,
+        platforms,
+        top_domains: topDomains,
+        streak,
+      },
+      recent_hackathons: recentHackathons,
+    });
+  } catch (err: any) {
+    console.error("Public profile error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // ============ EMAIL CRON JOBS ============
 app.all("/api/cron/reminder-dispatch", async (req, res) => {
   if (!isCronAuthorized(req)) return res.status(401).json({ error: "Unauthorized cron request" });

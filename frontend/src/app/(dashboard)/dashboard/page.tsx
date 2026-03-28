@@ -27,7 +27,9 @@ import {
   ExternalLink,
   AlertTriangle,
   X,
+  Share2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 interface Hackathon {
@@ -63,6 +65,7 @@ const statCards = [
 
 export default function DashboardPage() {
   const supabase = createClient();
+  const { toast } = useToast();
   const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -70,6 +73,8 @@ export default function DashboardPage() {
   const [sortBy, setSortBy] = useState("deadline");
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [apiStats, setApiStats] = useState({ total: 0, active: 0, participated: 0, wins: 0 });
+  const [profileUsername, setProfileUsername] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -85,7 +90,36 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchHackathons();
     fetchStats();
+    fetchUsername();
   }, []);
+
+  const fetchUsername = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    try {
+      const res = await fetch(`${apiUrl}/api/profile/me`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const profile = await res.json();
+        setProfileUsername(profile.username || null);
+      }
+    } catch {}
+  };
+
+  const handleShareProfile = async () => {
+    if (!profileUsername) return;
+    const url = `https://www.hack-track.tech/u/${profileUsername}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      toast({ title: "Copied!", description: "Profile link copied to clipboard" });
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      toast({ title: "Failed to copy", variant: "destructive" });
+    }
+  };
 
   const fetchStats = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -225,9 +259,22 @@ export default function DashboardPage() {
       })()}
 
       {/* Page title */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#E8EAF0]">Dashboard</h1>
-        <p className="text-sm text-[#7A8099] mt-1">Your hackathon command center</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[#E8EAF0]">Dashboard</h1>
+          <p className="text-sm text-[#7A8099] mt-1">Your hackathon command center</p>
+        </div>
+        {profileUsername && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShareProfile}
+            className="gap-2 text-xs border-[#1E2330] hover:border-[#00FF87]/30 hover:text-[#00FF87]"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            {shareCopied ? "Copied!" : "Share Profile"}
+          </Button>
+        )}
       </div>
 
       {/* Stats */}
