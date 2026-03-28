@@ -734,11 +734,35 @@ app.put("/api/hackathons/:id", async (req, res) => {
   const user = await getUserFromToken(req.headers.authorization);
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+  // Fetch hackathon to check ownership
+  const { data: hackathon, error: fetchError } = await supabase
+    .from("hackathons")
+    .select("user_id")
+    .eq("id", req.params.id)
+    .single();
+
+  if (fetchError || !hackathon) {
+    return res.status(404).json({ error: "Hackathon not found" });
+  }
+
+  // Check if owner or team member
+  const isOwner = hackathon.user_id === user.id;
+  const { data: memberData } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("hackathon_id", req.params.id)
+    .eq("email", user.email)
+    .maybeSingle();
+  const isMember = !!memberData;
+
+  if (!isOwner && !isMember) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
   const { data, error } = await supabase
     .from("hackathons")
     .update(req.body)
     .eq("id", req.params.id)
-    .eq("user_id", user.id)
     .select()
     .single();
 
