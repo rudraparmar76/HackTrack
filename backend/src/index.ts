@@ -1181,10 +1181,37 @@ app.get("/api/hackathons/:id/lft", async (req, res) => {
   const user = await getUserFromToken(req.headers.authorization);
   if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+  // 1. Get current hackathon to find its global identifier (url or name)
+  const { data: currentHackathon } = await supabase
+    .from("hackathons")
+    .select("url, name")
+    .eq("id", req.params.id)
+    .single();
+
+  if (!currentHackathon) return res.status(404).json({ error: "Hackathon not found" });
+
+  // 2. Find all local hackathon IDs that represent this same global hackathon
+  let matchingIds = [req.params.id];
+  
+  if (currentHackathon.url) {
+    const { data: matches } = await supabase
+      .from("hackathons")
+      .select("id")
+      .eq("url", currentHackathon.url);
+    if (matches) matchingIds = matches.map((m: any) => m.id);
+  } else if (currentHackathon.name) {
+    const { data: matches } = await supabase
+      .from("hackathons")
+      .select("id")
+      .eq("name", currentHackathon.name);
+    if (matches) matchingIds = matches.map((m: any) => m.id);
+  }
+
+  // 3. Get all active LFT posts across all matching hackathon instances
   const { data, error } = await supabase
     .from("lft_posts")
     .select("*")
-    .eq("hackathon_id", req.params.id)
+    .in("hackathon_id", matchingIds)
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
