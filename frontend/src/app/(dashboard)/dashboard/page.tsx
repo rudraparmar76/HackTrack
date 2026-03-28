@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { daysUntil, hoursUntil, getStatusColor, getCountdownClass, getPlatformColor, formatDate } from "@/lib/utils";
+import CountdownTimer from "@/components/countdown-timer";
 import {
   Trophy,
   Zap,
@@ -24,6 +25,8 @@ import {
   Clock,
   Users,
   ExternalLink,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -63,6 +66,18 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("deadline");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBannerDismissed(sessionStorage.getItem("ht-urgent-dismissed") === "1");
+    }
+  }, []);
+
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    sessionStorage.setItem("ht-urgent-dismissed", "1");
+  };
 
   const getDynamicStatus = (hackathon: any) => {
     const today = new Date();
@@ -179,6 +194,48 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* Urgent Deadline Banner */}
+      {!bannerDismissed && (() => {
+        const now = Date.now();
+        const threshold = 48 * 60 * 60 * 1000;
+        const urgent: { name: string; label: string; deadline: string }[] = [];
+        hackathons.forEach((h) => {
+          if (h.registration_deadline) {
+            const diff = new Date(h.registration_deadline).getTime() - now;
+            if (diff > 0 && diff <= threshold) urgent.push({ name: h.name, label: "registration", deadline: h.registration_deadline });
+          }
+          if (h.submission_deadline) {
+            const diff = new Date(h.submission_deadline).getTime() - now;
+            if (diff > 0 && diff <= threshold) urgent.push({ name: h.name, label: "submission", deadline: h.submission_deadline });
+          }
+        });
+        if (urgent.length === 0) return null;
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative bg-gradient-to-r from-red-500/10 via-[#EF9F27]/10 to-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-red-400 mb-0.5">
+                  {urgent.length} deadline{urgent.length > 1 ? "s" : ""} in the next 48 hours
+                </p>
+                <p className="text-[11px] text-[#7A8099] truncate">
+                  {urgent.map((u) => `${u.name} (${u.label})`).join(", ")}
+                </p>
+              </div>
+              <button onClick={dismissBanner} className="p-1 text-[#454D66] hover:text-[#7A8099] transition-colors shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        );
+      })()}
+
       {/* Page title */}
       <div>
         <h1 className="text-2xl font-bold text-[#E8EAF0]">Dashboard</h1>
@@ -317,17 +374,25 @@ export default function DashboardPage() {
                         {hack.name}
                       </h3>
 
-                      <div className="flex items-center gap-4 text-xs text-[#7A8099]">
-                        {daysLeft !== null && (
-                          <span className={`flex items-center gap-1 font-mono ${countdownClass}`}>
-                            <Clock className="w-3.5 h-3.5" />
-                            {daysLeft > 0
-                              ? `${daysLeft}d left`
-                              : daysLeft === 0
-                              ? "Today!"
-                              : "Ended"}
-                          </span>
+                      {/* Live Countdown Timers */}
+                      <div className="space-y-1.5">
+                        {hack.registration_deadline && (
+                          <div className="flex items-center justify-between">
+                            <CountdownTimer
+                              deadline={hack.registration_deadline}
+                              label="Registration closes"
+                            />
+                          </div>
                         )}
+                        <div className="flex items-center justify-between">
+                          <CountdownTimer
+                            deadline={hack.submission_deadline}
+                            label="Submission closes"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-xs text-[#7A8099]">
                         {hack.prize_pool && (
                           <span className="flex items-center gap-1 font-mono">
                             <Trophy className="w-3.5 h-3.5" />
@@ -361,11 +426,6 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       )}
-
-                      {/* Deadline */}
-                      <div className="text-xs text-[#454D66] pt-1 border-t border-[#1E2330] font-mono">
-                        Submission: {formatDate(hack.submission_deadline)}
-                      </div>
                     </div>
                   </div>
                 </Link>

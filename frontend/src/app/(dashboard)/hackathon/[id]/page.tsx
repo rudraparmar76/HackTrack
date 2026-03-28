@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import CountdownTimer from "@/components/countdown-timer";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,11 @@ import {
   Zap,
   Brain,
   Lightbulb,
+  Play,
+  Flag,
+  ClipboardCheck,
+  Send,
+  Award,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -631,24 +637,61 @@ export default function HackathonDetailPage() {
             </div>
           )}
 
-          {/* Key Dates */}
+          {/* Live Timeline */}
           <div className="hack-card rounded-xl p-5">
             <h3 className="text-sm font-medium text-[#7A8099] mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Key Dates
+              <Calendar className="w-4 h-4" /> Timeline
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="space-y-2">
               {[
-                { label: "Start", date: hackathon.start_date },
-                { label: "End", date: hackathon.end_date },
+                { label: "Start Date", date: hackathon.start_date, Icon: Play },
+                { label: "Registration Deadline", date: hackathon.registration_deadline, Icon: ClipboardCheck },
+                { label: "End Date", date: hackathon.end_date, Icon: Flag },
+                { label: "Submission Deadline", date: hackathon.submission_deadline, Icon: Send },
+                { label: "Results", date: hackathon.result_date, Icon: Award },
+              ]
+                .filter((d) => d.date)
+                .sort((a, b) => {
+                  const aDiff = Math.abs(new Date(a.date!).getTime() - Date.now());
+                  const bDiff = Math.abs(new Date(b.date!).getTime() - Date.now());
+                  return aDiff - bDiff;
+                })
+                .map((d) => {
+                  const isPast = new Date(d.date!).getTime() < Date.now();
+                  return (
+                    <div
+                      key={d.label}
+                      className={`flex items-center gap-3 bg-[#151820] rounded-lg px-4 py-3 border border-[#1E2330] ${isPast ? "opacity-50" : ""}`}
+                    >
+                      <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${isPast ? "bg-[#1E2330]" : "bg-[#00FF87]/10"}`}>
+                        <d.Icon className={`w-3.5 h-3.5 ${isPast ? "text-[#454D66]" : "text-[#00FF87]"}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs ${isPast ? "text-[#454D66] line-through" : "text-[#7A8099]"}`}>{d.label}</p>
+                        <p className={`text-sm font-medium font-mono ${isPast ? "text-[#454D66]" : "text-[#E8EAF0]"}`}>{formatDate(d.date)}</p>
+                      </div>
+                      <CountdownTimer deadline={d.date} compact />
+                    </div>
+                  );
+                })}
+              {/* Show dates with no value */}
+              {[
+                { label: "Start Date", date: hackathon.start_date },
                 { label: "Registration", date: hackathon.registration_deadline },
+                { label: "End Date", date: hackathon.end_date },
                 { label: "Submission", date: hackathon.submission_deadline },
                 { label: "Results", date: hackathon.result_date },
-              ].map((d) => (
-                <div key={d.label} className="bg-[#151820] rounded-lg p-3 border border-[#1E2330]">
-                  <p className="text-xs text-[#454D66] mb-1">{d.label}</p>
-                  <p className="text-sm font-medium font-mono text-[#E8EAF0]">{formatDate(d.date)}</p>
-                </div>
-              ))}
+              ].filter((d) => !d.date).length > 0 && (
+                <p className="text-[10px] text-[#454D66] text-right font-mono pt-1">
+                  {[
+                    { label: "Start Date", date: hackathon.start_date },
+                    { label: "Registration", date: hackathon.registration_deadline },
+                    { label: "End Date", date: hackathon.end_date },
+                    { label: "Submission", date: hackathon.submission_deadline },
+                    { label: "Results", date: hackathon.result_date },
+                  ].filter((d) => !d.date).map((d) => d.label).join(", ")} — TBD
+                </p>
+              )}
             </div>
           </div>
 
