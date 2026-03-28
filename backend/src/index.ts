@@ -1737,10 +1737,10 @@ app.get("/api/public/profile/:username", async (req, res) => {
   try {
     const { username } = req.params;
 
-    // Fetch public profile
+    // Fetch public profile (including email for finding shared hackathons)
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("id, username, display_name, bio, github_url, linkedin_url, twitter_url, is_public, created_at")
+      .select("id, email, username, display_name, bio, github_url, linkedin_url, twitter_url, is_public, created_at")
       .eq("username", username)
       .eq("is_public", true)
       .single();
@@ -1749,15 +1749,48 @@ app.get("/api/public/profile/:username", async (req, res) => {
       return res.status(404).json({ error: "Profile not found" });
     }
 
-    // Fetch user's public hackathons
-    const { data: hackathons } = await supabase
+    // Fetch user's public OWNED hackathons
+    const { data: ownedHacks } = await supabase
       .from("hackathons")
       .select("id, name, status, won, placement, platform, tags, start_date, end_date, created_at")
       .eq("user_id", profile.id)
       .eq("is_public", true)
       .order("created_at", { ascending: false });
 
-    const allHackathons = hackathons || [];
+    const owned = ownedHacks || [];
+    const shared: any[] = [];
+
+    // Fetch user's public SHARED hackathons
+    if (profile.email) {
+      const { data: teamMemberships } = await supabase
+        .from("team_members")
+        .select("hackathon_id")
+        .eq("email", profile.email.toLowerCase());
+
+      const sharedIds = (teamMemberships || [])
+        .map((row: any) => row.hackathon_id)
+        .filter((id: string) => Boolean(id));
+
+      const ownedIdSet = new Set(owned.map((hack: any) => hack.id));
+      const uniqueSharedIds = Array.from(new Set(sharedIds)).filter((id) => !ownedIdSet.has(id));
+
+      if (uniqueSharedIds.length > 0) {
+        const { data: sharedHacks } = await supabase
+          .from("hackathons")
+          .select("id, name, status, won, placement, platform, tags, start_date, end_date, created_at")
+          .in("id", uniqueSharedIds)
+          .eq("is_public", true)
+          .order("created_at", { ascending: false });
+
+        if (sharedHacks) {
+          shared.push(...sharedHacks);
+        }
+      }
+    }
+
+    const allHackathons = [...owned, ...shared].sort(
+      (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
     // Compute stats
     const participated = allHackathons.filter(
