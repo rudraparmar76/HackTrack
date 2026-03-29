@@ -35,7 +35,6 @@ The application is structured around a fast, responsive Next.js frontend and a r
 *   👤 **Public Profile (`/u/[username]`)**: A fully public shareable page highlighting a user's track record and wins.
 
 ## 🛠️ Tech Stack
-
 *   **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion, shadcn/ui
 *   **Backend**: Node.js, Express, TypeScript
 *   **Database & Auth**: Supabase (PostgreSQL, Row Level Security, Auth)
