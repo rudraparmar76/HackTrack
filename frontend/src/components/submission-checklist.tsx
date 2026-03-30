@@ -86,15 +86,15 @@ function SortableChecklistItem({
       transition={{ duration: 0.2 }}
       className={`group flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 ${
         item.checked
-          ? "bg-[#00FF87]/[0.04] border-[#00FF87]/15"
-          : "bg-[#151820] border-[#1E2330] hover:border-[#2A3045]"
-      } ${isDragging ? "shadow-xl shadow-[#00FF87]/5 ring-1 ring-[#00FF87]/20" : ""}`}
+          ? "bg-[rgba(0,255,135,0.05)] border-[rgba(0,255,135,0.2)]"
+          : "bg-[rgba(6,3,18,0.5)] border-[rgba(123,47,255,0.2)] hover:border-[var(--cyan-accent)] shadow-sm hover:shadow-[0_0_8px_rgba(0,212,255,0.1)]"
+      } ${isDragging ? "shadow-xl shadow-[var(--cyan-accent)]/10 ring-1 ring-[var(--cyan-accent)]/20" : ""}`}
     >
       {/* Drag handle */}
       <button
         {...attributes}
         {...listeners}
-        className="text-[#2A3045] hover:text-[#454D66] cursor-grab active:cursor-grabbing transition-colors shrink-0 touch-none"
+        className="text-[#454D66] hover:text-[var(--cyan-accent)] cursor-grab active:cursor-grabbing transition-colors shrink-0 touch-none"
         aria-label="Drag to reorder"
       >
         <GripVertical className="w-4 h-4" />
@@ -109,13 +109,13 @@ function SortableChecklistItem({
         {item.checked ? (
           <CheckCircle2 className="w-5 h-5 text-[#00FF87] drop-shadow-[0_0_6px_rgba(0,255,135,0.3)]" />
         ) : (
-          <Circle className="w-5 h-5 text-[#2A3045] hover:text-[#454D66]" />
+          <Circle className="w-5 h-5 text-[rgba(123,47,255,0.5)] hover:text-[var(--cyan-accent)] transition-colors" />
         )}
       </button>
 
       {/* Label */}
       <span
-        className={`flex-1 text-sm transition-all duration-200 select-none ${
+        className={`flex-1 text-sm font-mono transition-all duration-200 select-none ${
           item.checked
             ? "line-through text-[#00FF87]/60"
             : "text-[#E8EAF0]"
@@ -327,50 +327,52 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
   return (
     <div className="space-y-5">
       {/* Header + Progress */}
-      <div className="hack-card rounded-xl p-5">
+      <div className="hack-card dash-card-glow rounded-xl p-5 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)]">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 ${
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 border ${
               allComplete
-                ? "bg-gradient-to-br from-[#00FF87] to-[#00D4FF] shadow-lg shadow-[#00FF87]/20"
-                : "bg-[#00FF87]/10"
+                ? "bg-gradient-to-br from-[#00FF87]/20 to-[#00D4FF]/20 border-[#00FF87]/30 shadow-[0_0_15px_rgba(0,255,135,0.2)]"
+                : "bg-[rgba(123,47,255,0.1)] border-[rgba(123,47,255,0.2)] shadow-[0_0_10px_rgba(123,47,255,0.1)]"
             }`}>
               {allComplete ? (
-                <Trophy className="w-5 h-5 text-[#0F1117]" />
+                <Trophy className="w-5 h-5 text-[#00FF87] drop-shadow-[0_0_5px_rgba(0,255,135,0.5)]" />
               ) : (
-                <CheckCircle2 className="w-5 h-5 text-[#00FF87]" />
+                <CheckCircle2 className="w-5 h-5 text-[var(--cyan-accent)]" />
               )}
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[#E8EAF0]">Submission Checklist</h3>
-              <p className="text-xs text-[#454D66]">Track your hackathon progress</p>
+              <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider mb-0.5 flex items-center gap-2">
+                <span className="text-[var(--text-secondary)]">//</span> Submission Checklist
+              </h3>
+              <p className="text-[10px] font-mono text-[var(--text-secondary)]">TRACK YOUR HACKATHON PROGRESS</p>
             </div>
           </div>
           <div className="text-right">
-            <p className={`text-lg font-bold font-mono transition-colors duration-300 ${
-              allComplete ? "text-[#00FF87]" : progressPercent > 50 ? "text-[#00D4FF]" : "text-[#E8EAF0]"
+            <p className={`text-xl font-bold font-mono transition-colors duration-300 ${
+              allComplete ? "text-[#00FF87] drop-shadow-[0_0_8px_rgba(0,255,135,0.5)]" : progressPercent > 50 ? "text-[var(--cyan-accent)]" : "text-[#E8EAF0]"
             }`}>
               {checkedCount}/{totalCount}
             </p>
-            <p className="text-[10px] text-[#454D66]">completed</p>
+            <p className="text-[10px] font-mono text-[#454D66] uppercase">completed</p>
           </div>
         </div>
 
         {/* Progress bar */}
         <div className="relative">
-          <div className="h-2.5 bg-[#1A1F2E] rounded-full overflow-hidden border border-[#1E2330]">
+          <div className="h-2 bg-[rgba(6,3,18,0.8)] rounded-sm overflow-hidden border border-[rgba(123,47,255,0.3)]">
             <motion.div
-              className={`h-full rounded-full ${
+              className={`h-full rounded-sm ${
                 allComplete
-                  ? "bg-gradient-to-r from-[#00FF87] to-[#00D4FF]"
-                  : "bg-gradient-to-r from-[#00FF87] to-[#00FF87]/70"
+                  ? "bg-gradient-to-r from-[#00FF87] to-[var(--cyan-accent)] shadow-[0_0_10px_rgba(0,255,135,0.5)]"
+                  : "bg-[var(--cyan-accent)] shadow-[0_0_10px_rgba(0,212,255,0.3)]"
               }`}
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             />
           </div>
-          <p className="text-[10px] text-[#454D66] text-right mt-1.5 font-mono">
+          <p className="text-[10px] text-[#454D66] text-right mt-1.5 font-mono uppercase tracking-widest">
             {progressPercent}% complete
           </p>
         </div>
@@ -425,20 +427,20 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
 
         {items.length === 0 && (
           <div className="text-center py-12">
-            <CheckCircle2 className="w-12 h-12 text-[#1E2330] mx-auto mb-3" />
-            <p className="text-sm text-[#7A8099] mb-1">No checklist items yet</p>
-            <p className="text-xs text-[#454D66]">
-              Add your first item or create a new hackathon to get default items
+            <CheckCircle2 className="w-10 h-10 text-[var(--text-secondary)] mx-auto mb-3 opacity-50" />
+            <p className="text-xs font-mono text-[var(--text-secondary)] mb-1 uppercase">NO CHECKLIST ITEMS YET</p>
+            <p className="text-[10px] font-mono text-[#454D66]">
+              // ADD YOUR FIRST ITEM OR CREATE A NEW HACKATHON TO GET DEFAULT ITEMS
             </p>
           </div>
         )}
       </div>
 
       {/* Add custom item */}
-      <div className="hack-card rounded-xl p-4">
+      <div className="hack-card dash-card-glow rounded-xl p-4 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)]">
         <div className="flex items-center gap-3">
-          <div className="w-5 h-5 rounded-full border-2 border-dashed border-[#2A3045] flex items-center justify-center shrink-0">
-            <Plus className="w-3 h-3 text-[#454D66]" />
+          <div className="w-5 h-5 rounded-md border border-dashed border-[rgba(123,47,255,0.4)] flex items-center justify-center shrink-0">
+            <Plus className="w-3 h-3 text-[var(--text-secondary)]" />
           </div>
           <Input
             ref={inputRef}
@@ -447,21 +449,21 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
             onKeyDown={(e) => {
               if (e.key === "Enter" && !adding) addItem();
             }}
-            placeholder="Add a custom checklist item..."
-            className="flex-1 bg-transparent border-none shadow-none focus-visible:ring-0 text-sm text-[#E8EAF0] placeholder:text-[#2A3045] h-8 px-0"
+            placeholder="// Add a custom checklist item..."
+            className="flex-1 bg-transparent border-none shadow-none focus-visible:ring-0 text-sm font-mono text-[#E8EAF0] placeholder:text-[#454D66] h-8 px-0 selection:bg-[var(--cyan-accent)] selection:text-black"
           />
           <Button
             size="sm"
             onClick={addItem}
             disabled={adding || !newLabel.trim()}
-            className="gap-1 h-8 text-xs bg-[#00FF87]/10 text-[#00FF87] hover:bg-[#00FF87]/20 border border-[#00FF87]/20 disabled:opacity-30"
+            className="gap-1.5 h-8 text-[10px] font-mono bg-[rgba(0,212,255,0.1)] text-[var(--cyan-accent)] hover:bg-[rgba(0,212,255,0.2)] border border-[rgba(0,212,255,0.3)] disabled:opacity-30 uppercase tracking-wider"
           >
             {adding ? (
               <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
               <Plus className="w-3 h-3" />
             )}
-            Add
+            ADD
           </Button>
         </div>
       </div>

@@ -171,7 +171,7 @@ function TagInput({
             }
           }}
           placeholder={placeholder}
-          className="bg-[#0F1117] border-[#1E2330] text-sm pr-8"
+          className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-sm font-mono pr-8 text-[#E8EAF0] placeholder:text-[#454D66]"
         />
         <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#454D66]" />
       </div>
@@ -184,7 +184,7 @@ function TagInput({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 mt-1 w-full max-h-40 overflow-y-auto rounded-xl border border-[#1E2330] bg-[#151820] shadow-xl shadow-black/20"
+            className="absolute z-50 mt-1 w-full max-h-40 overflow-y-auto rounded-xl border border-[rgba(123,47,255,0.3)] bg-[#0a0520] shadow-xl shadow-black/50"
           >
             {filtered.slice(0, 15).map((opt) => (
               <button
@@ -193,7 +193,7 @@ function TagInput({
                   addTag(opt);
                   setShowDropdown(false);
                 }}
-                className={`w-full text-left px-3 py-2 text-xs text-[#E8EAF0] ${pillHover} transition-colors`}
+                className={`w-full font-mono text-left px-3 py-2 text-xs text-[#E8EAF0] ${pillHover} focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)] transition-colors`}
               >
                 {opt}
               </button>
@@ -234,18 +234,20 @@ function LftPostCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8, height: 0 }}
       transition={{ duration: 0.25 }}
-      className={`hack-card rounded-xl p-5 transition-all ${
-        post.is_own ? "ring-1 ring-[#00FF87]/20 bg-[#00FF87]/[0.02]" : ""
+      className={`hack-card dash-card-glow rounded-xl p-5 border transition-all ${
+        post.is_own 
+        ? "border-[rgba(0,255,135,0.3)] bg-[rgba(0,255,135,0.02)] shadow-[0_0_8px_rgba(0,255,135,0.1)]" 
+        : "border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)] hover:border-[var(--cyan-accent)] hover:shadow-[0_0_10px_rgba(0,212,255,0.1)]"
       }`}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FF87]/20 to-[#00D4FF]/20 flex items-center justify-center text-sm font-bold text-[#00FF87] shrink-0 border border-[#00FF87]/10">
+          <div className="w-10 h-10 rounded-lg bg-[rgba(0,212,255,0.1)] flex items-center justify-center text-sm font-bold text-[var(--cyan-accent)] shrink-0 border border-[rgba(0,212,255,0.2)] shadow-[0_0_8px_rgba(0,212,255,0.1)] pixel">
             {post.display_name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#E8EAF0] truncate">
+            <p className="text-sm font-bold text-[var(--cyan-accent)] truncate">
               {post.display_name}
               {post.is_own && (
                 <span className="ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[#00FF87]/15 text-[#00FF87] border border-[#00FF87]/20">
@@ -503,26 +505,28 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="hack-card rounded-xl p-5">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A855F7]/20 to-[#00D4FF]/20 flex items-center justify-center">
-              <Users className="w-5 h-5 text-[#A855F7]" />
+      <div className="hack-card dash-card-glow rounded-xl p-5 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-1">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[rgba(123,47,255,0.1)] border border-[rgba(123,47,255,0.2)] shadow-[0_0_10px_rgba(123,47,255,0.1)]">
+              <Users className="w-5 h-5 text-[var(--cyan-accent)]" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[#E8EAF0]">Find Teammates</h3>
-              <p className="text-xs text-[#454D66]">
-                {posts.length} {posts.length === 1 ? "person" : "people"} looking for teammates
+              <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider mb-0.5 flex items-center gap-2">
+                <span className="text-[var(--text-secondary)]">//</span> Find Teammates
+              </h3>
+              <p className="text-[10px] font-mono text-[var(--text-secondary)] uppercase">
+                {posts.length} {posts.length === 1 ? "PERSON" : "PEOPLE"} LOOKING FOR TEAMMATES
               </p>
             </div>
           </div>
           <Button
             size="sm"
             onClick={ownPost ? startEdit : () => setShowForm(!showForm)}
-            className={`gap-1.5 text-xs h-8 font-semibold ${
+            className={`gap-1.5 text-xs h-8 font-mono shrink-0 ${
               ownPost
-                ? "bg-[#00FF87]/10 text-[#00FF87] hover:bg-[#00FF87]/20 border border-[#00FF87]/20"
-                : "bg-gradient-to-r from-[#A855F7] to-[#00D4FF] text-white hover:opacity-90 shadow-sm shadow-[#A855F7]/10"
+                ? "bg-[rgba(0,255,135,0.1)] text-[#00FF87] hover:bg-[rgba(0,255,135,0.2)] border border-[rgba(0,255,135,0.3)] uppercase tracking-wider font-bold"
+                : "bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black border border-transparent uppercase tracking-wider font-bold"
             }`}
           >
             {ownPost ? (
@@ -548,15 +552,15 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="hack-card rounded-xl p-5 space-y-4 border border-[#A855F7]/15">
+            <div className="hack-card dash-card-glow rounded-xl p-5 space-y-4 border border-[rgba(123,47,255,0.4)] bg-[rgba(6,3,18,0.8)] shadow-lg shadow-black/50">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-[#E8EAF0] flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-[#A855F7]" />
+                <h4 className="text-xs font-mono font-bold text-[#E8EAF0] uppercase flex items-center gap-2 tracking-wider">
+                  <span className="text-[var(--cyan-accent)]"><MessageCircle className="w-4 h-4" /></span>
                   {editingPostId ? "Edit Your Post" : "Post Your Profile"}
                 </h4>
                 <button
                   onClick={resetForm}
-                  className="p-1 rounded-lg text-[#454D66] hover:text-[#E8EAF0] hover:bg-[#1A1F2E] transition-all"
+                  className="p-1 rounded-lg text-[#454D66] hover:text-[#E8EAF0] hover:bg-[rgba(123,47,255,0.1)] transition-all"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -564,24 +568,24 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
 
               {/* Skills */}
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#7A8099]">Your Skills *</Label>
+                <Label className="text-xs font-mono text-[var(--text-secondary)] uppercase">Your Skills *</Label>
                 <TagInput
                   value={formSkills}
                   onChange={setFormSkills}
                   presets={PRESET_SKILLS}
-                  placeholder="Search or type a skill, press Enter..."
+                  placeholder="// Search or type a skill, press Enter..."
                   color="teal"
                 />
               </div>
 
               {/* Looking for */}
               <div className="space-y-1.5">
-                <Label className="text-xs text-[#7A8099]">Looking For *</Label>
+                <Label className="text-xs font-mono text-[var(--text-secondary)] uppercase">Looking For *</Label>
                 <TagInput
                   value={formLookingFor}
                   onChange={setFormLookingFor}
                   presets={PRESET_ROLES}
-                  placeholder="Search or type a role, press Enter..."
+                  placeholder="// Search or type a role, press Enter..."
                   color="purple"
                 />
               </div>
@@ -589,7 +593,7 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
               {/* Message */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs text-[#7A8099]">Message *</Label>
+                  <Label className="text-xs font-mono text-[var(--text-secondary)] uppercase">Message *</Label>
                   <span
                     className={`text-[10px] font-mono ${
                       formMessage.length > 280
@@ -605,8 +609,8 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
                 <textarea
                   value={formMessage}
                   onChange={(e) => setFormMessage(e.target.value.slice(0, 300))}
-                  placeholder="Tell others about yourself and what you're looking for..."
-                  className="w-full bg-[#0F1117] border border-[#1E2330] rounded-xl px-3 py-2.5 text-sm text-[#E8EAF0] placeholder:text-[#2A3045] focus:outline-none focus:ring-2 focus:ring-[#A855F7]/30 min-h-[80px] resize-none transition-all"
+                  placeholder="// Tell others about yourself and what you're looking for..."
+                  className="w-full bg-[#0F1117] border border-[rgba(123,47,255,0.2)] rounded-xl px-3 py-2.5 text-sm font-mono text-[#E8EAF0] placeholder:text-[#454D66] focus:outline-none focus:ring-1 focus:ring-[var(--cyan-accent)] min-h-[80px] resize-none transition-all selection:bg-[var(--cyan-accent)] selection:text-black"
                   maxLength={300}
                 />
               </div>
@@ -614,21 +618,21 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
               {/* Contact */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#7A8099]">Discord Handle</Label>
+                  <Label className="text-xs font-mono text-[var(--text-secondary)] uppercase">Discord Handle</Label>
                   <Input
                     value={formDiscord}
                     onChange={(e) => setFormDiscord(e.target.value)}
                     placeholder="username#0000"
-                    className="bg-[#0F1117] border-[#1E2330] text-sm"
+                    className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-sm font-mono text-[#E8EAF0]"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[#7A8099]">Twitter/X Handle</Label>
+                  <Label className="text-xs font-mono text-[var(--text-secondary)] uppercase">Twitter/X Handle</Label>
                   <Input
                     value={formTwitter}
                     onChange={(e) => setFormTwitter(e.target.value)}
                     placeholder="@username"
-                    className="bg-[#0F1117] border-[#1E2330] text-sm"
+                    className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-sm font-mono text-[#E8EAF0]"
                   />
                 </div>
               </div>
@@ -637,7 +641,7 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="w-full gap-2 bg-gradient-to-r from-[#A855F7] to-[#00D4FF] text-white hover:opacity-90 font-semibold shadow-sm shadow-[#A855F7]/10"
+                className="w-full gap-2 font-mono text-xs bg-[var(--cyan-accent)] text-black hover:bg-[var(--cyan-accent)]/80 font-bold uppercase tracking-wider disabled:opacity-50 border border-transparent"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -658,8 +662,8 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
           <Input
             value={filterSkill}
             onChange={(e) => setFilterSkill(e.target.value)}
-            placeholder="Filter by skill or role..."
-            className="pl-9 bg-[#151820] border-[#1E2330] text-sm h-10"
+            placeholder="// Filter by skill or role..."
+            className="pl-9 bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-sm font-mono h-10 text-[#E8EAF0] placeholder:text-[#454D66]"
           />
           {filterSkill && (
             <button
@@ -697,15 +701,15 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
         {/* Empty state */}
         {posts.length === 0 && (
           <div className="text-center py-14">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#A855F7]/10 to-[#00D4FF]/10 flex items-center justify-center border border-[#A855F7]/10">
-              <Users className="w-8 h-8 text-[#2A3045]" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[rgba(123,47,255,0.1)] flex items-center justify-center border border-[rgba(123,47,255,0.2)] shadow-[0_0_15px_rgba(123,47,255,0.1)]">
+              <Users className="w-8 h-8 text-[var(--cyan-accent)] opacity-80" />
             </div>
-            <p className="text-sm text-[#7A8099] mb-1">No one&apos;s looking for teammates yet</p>
-            <p className="text-xs text-[#454D66] mb-4">Be the first to post your profile!</p>
+            <p className="text-sm text-[#E8EAF0] font-mono mb-1 uppercase tracking-wider font-bold">No one&apos;s looking for teammates yet</p>
+            <p className="text-xs text-[#454D66] font-mono mb-4 uppercase">// Be the first to post your profile!</p>
             <Button
               size="sm"
               onClick={() => setShowForm(true)}
-              className="gap-1.5 text-xs bg-gradient-to-r from-[#A855F7] to-[#00D4FF] text-white hover:opacity-90"
+              className="gap-1.5 font-mono text-xs bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold uppercase tracking-wider border border-transparent"
             >
               <Plus className="w-3 h-3" /> Post Your Profile
             </Button>

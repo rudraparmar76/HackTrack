@@ -114,7 +114,7 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
   };
 
   return (
-    <div className="bg-[#1A1F2E] border-b border-[#252A3A] sticky top-0 z-40 relative shadow-md">
+    <div className="bg-[rgba(6,3,18,0.95)] border-b border-[rgba(123,47,255,0.2)] sticky top-0 z-40 relative shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between overflow-x-auto py-4 scrollbar-hide">
           <div className="flex items-center min-w-max gap-1">
@@ -159,8 +159,8 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
                     disabled={loading !== null}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all border border-transparent whitespace-nowrap ${
                       isCurrent && stage.id !== "result"
-                        ? "bg-[#252A3A] border-[#2A3045] shadow-sm"
-                        : "hover:bg-[#252A3A]"
+                        ? "bg-[rgba(0,212,255,0.1)] border-[var(--cyan-accent)] shadow-[0_0_8px_rgba(0,212,255,0.2)]"
+                        : "hover:bg-[rgba(123,47,255,0.1)] hover:border-[rgba(123,47,255,0.3)]"
                     } ${bgColor}`}
                   >
                     {loading === stage.id ? (
@@ -176,7 +176,7 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
                   </button>
 
                   {idx < STAGES.length - 1 && (
-                    <ChevronRight className={`w-4 h-4 mx-2 ${isPast ? "text-[#00FF87]/50" : "text-[#2A3045]"}`} />
+                    <ChevronRight className={`w-4 h-4 mx-2 ${isPast ? "text-[var(--cyan-accent)]/50" : "text-[#454D66]"}`} />
                   )}
                 </div>
               );
@@ -186,9 +186,9 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
       </div>
 
       <Dialog open={resultDialogOpen} onOpenChange={setResultDialogOpen}>
-        <DialogContent className="bg-[#1A1F2E] border-[#2A3045] sm:max-w-md">
+        <DialogContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#E8EAF0]">Hackathon Result</DialogTitle>
+            <DialogTitle className="text-[#E8EAF0] pixel text-sm">HACKATHON RESULT</DialogTitle>
             <DialogDescription className="text-[#7A8099]">
               How did the hackathon go? Update your final status.
             </DialogDescription>
@@ -199,34 +199,34 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
               onClick={() => setResultType("won")}
               className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                 resultType === "won"
-                  ? "bg-[#FFD700]/10 border-[#FFD700] text-[#FFD700]"
-                  : "bg-[#0F1117] border-[#2A3045] text-[#7A8099] hover:border-[#454D66]"
+                  ? "bg-[#FFD700]/10 border-[#FFD700] text-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.2)]"
+                  : "bg-[rgba(6,3,18,0.5)] border-[rgba(123,47,255,0.2)] text-[#7A8099] hover:border-[var(--cyan-accent)]"
               }`}
             >
               <Trophy className="w-6 h-6" />
-              <span className="font-medium text-sm">Won</span>
+              <span className="font-mono font-medium text-sm">Won</span>
             </button>
             <button
               onClick={() => setResultType("lost")}
               className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                 resultType === "lost"
                   ? "bg-red-500/10 border-red-500 text-red-400"
-                  : "bg-[#0F1117] border-[#2A3045] text-[#7A8099] hover:border-[#454D66]"
+                  : "bg-[rgba(6,3,18,0.5)] border-[rgba(123,47,255,0.2)] text-[#7A8099] hover:border-[var(--cyan-accent)]"
               }`}
             >
               <XCircle className="w-6 h-6" />
-              <span className="font-medium text-sm">Lost</span>
+              <span className="font-mono font-medium text-sm">Lost</span>
             </button>
             <button
               onClick={() => setResultType("withdrew")}
               className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                 resultType === "withdrew"
                   ? "bg-[#EF9F27]/10 border-[#EF9F27] text-[#EF9F27]"
-                  : "bg-[#0F1117] border-[#2A3045] text-[#7A8099] hover:border-[#454D66]"
+                  : "bg-[rgba(6,3,18,0.5)] border-[rgba(123,47,255,0.2)] text-[#7A8099] hover:border-[var(--cyan-accent)]"
               }`}
             >
               <LogOut className="w-6 h-6" />
-              <span className="font-medium text-sm">Withdrew</span>
+              <span className="font-mono font-medium text-sm">Withdrew</span>
             </button>
           </div>
 
@@ -236,14 +236,14 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
               animate={{ opacity: 1, height: "auto" }}
               className="space-y-3"
             >
-              <label className="text-sm font-medium text-[#E8EAF0]">
+              <label className="text-sm font-medium font-mono text-[#E8EAF0]">
                 What place did you finish? (Optional)
               </label>
               <Input
-                placeholder="e.g. 1st Place, Best UI/UX, Top 10"
+                placeholder="e.g. 1st Place, Best UI/UX"
                 value={placement}
                 onChange={(e) => setPlacement(e.target.value)}
-                className="bg-[#0F1117] border-[#2A3045] text-[#E8EAF0] focus-visible:ring-[#FFD700]/30 focus-visible:border-[#FFD700]"
+                className="bg-[rgba(6,3,18,0.5)] border-[rgba(123,47,255,0.2)] font-mono text-[#E8EAF0] focus-visible:ring-[#FFD700]/30 focus-visible:border-[#FFD700]"
               />
             </motion.div>
           )}
@@ -252,20 +252,20 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
             <Button
               variant="outline"
               onClick={() => setResultDialogOpen(false)}
-              className="border-[#2A3045] text-[#7A8099] hover:bg-[#252A3A] hover:text-[#E8EAF0]"
+              className="border-[rgba(123,47,255,0.3)] text-[#7A8099] hover:bg-[rgba(123,47,255,0.1)] hover:text-[#E8EAF0] font-mono"
             >
               Cancel
             </Button>
             <Button
               onClick={submitResult}
               disabled={!resultType || loading === "result"}
-              className={`${
+              className={`font-mono ${
                 resultType === "won" 
-                  ? "bg-[#FFD700] hover:bg-[#FFD700]/90 text-black font-semibold" 
-                  : "bg-[#00FF87] hover:bg-[#00FF87]/90 text-black"
+                  ? "bg-[#FFD700] hover:bg-[#FFD700]/90 text-black font-bold shadow-[0_0_10px_rgba(255,215,0,0.5)]" 
+                  : "bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/90 text-black shadow-[0_0_10px_rgba(0,212,255,0.5)]"
               }`}
             >
-              {loading === "result" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Result"}
+              {loading === "result" ? <Loader2 className="w-4 h-4 animate-spin" /> : "SAVE RESULT"}
             </Button>
           </DialogFooter>
         </DialogContent>

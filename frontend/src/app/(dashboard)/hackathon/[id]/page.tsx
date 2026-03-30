@@ -538,29 +538,31 @@ export default function HackathonDetailPage() {
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div className="flex items-start gap-3 sm:gap-4 shrink-0 max-w-full">
-          <Link href="/dashboard" className="p-2 rounded-lg hover:bg-[#1A1F2E] transition-colors text-[#7A8099] hover:text-[#E8EAF0] mt-1 shrink-0">
+        <div className="flex items-start gap-4 shrink-0 max-w-full">
+          <Link href="/dashboard" className="p-2 rounded-lg bg-[rgba(123,47,255,0.05)] text-[var(--text-secondary)] hover:text-[#fff] hover:bg-[rgba(123,47,255,0.15)] mt-1 shrink-0 border border-[rgba(123,47,255,0.2)] transition-all shadow-[0_0_10px_rgba(123,47,255,0.05)] hover:shadow-[0_0_15px_rgba(123,47,255,0.2)]">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
-              <h1 className="pixel text-sm sm:text-base text-[#E8EAF0] break-words line-clamp-2" style={{ textShadow: '0 0 20px rgba(123,47,255,0.35)' }}>{hackathon.name}</h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(hackathon.status)}`}>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+              <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "16px", color: "white", textShadow: '0 0 20px rgba(123,47,255,0.35)' }} className="uppercase break-words line-clamp-2 leading-tight">
+                {hackathon.name}
+              </h1>
+              <span className={`px-2.5 py-0.5 rounded-sm font-mono text-[10px] uppercase font-bold border flex items-center gap-1.5 ${getStatusColor(hackathon.status)}`}>
                 {hackathon.status === "active" && (
                   <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] pulse-dot" />
                 )}
-                {hackathon.status.charAt(0).toUpperCase() + hackathon.status.slice(1)}
+                {hackathon.status}
               </span>
               {hackathon.platform && (
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getPlatformColor(hackathon.platform)}`}>
+                <span className={`px-2.5 py-0.5 rounded-sm font-mono text-[10px] uppercase font-bold ${getPlatformColor(hackathon.platform)}`}>
                   {hackathon.platform}
                 </span>
               )}
             </div>
             {hackathon.url && (
-              <a href={hackathon.url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#00D4FF] hover:underline flex items-center gap-1">
-                {hackathon.url.replace(/https?:\/\//, "").slice(0, 50)}
-                <ExternalLink className="w-3 h-3" />
+              <a href={hackathon.url} target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-[var(--cyan-accent)] hover:text-[#00D4FF] hover:underline flex items-center gap-1 transition-colors">
+                <span className="text-[var(--purple-primary)]">//</span> {hackathon.url.replace(/https?:\/\//, "").slice(0, 50)}
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
           </div>
@@ -569,62 +571,62 @@ export default function HackathonDetailPage() {
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <Dialog open={showEditHackathon} onOpenChange={setShowEditHackathon}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" onClick={() => setEditHackathonData(hackathon)} className="gap-1 border-[#1E2330] hover:bg-[#1A1F2E] text-[#E8EAF0]">
+                <Button variant="outline" size="sm" onClick={() => setEditHackathonData(hackathon)} className="gap-1 font-mono text-xs border-[rgba(123,47,255,0.3)] bg-[rgba(6,3,18,0.5)] hover:bg-[rgba(123,47,255,0.1)] hover:border-[var(--cyan-accent)] text-[#E8EAF0] transition-colors">
                   <Edit className="w-3.5 h-3.5" /> Edit
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>Edit Hackathon Details</DialogTitle></DialogHeader>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+              <DialogContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)] max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "12px", color: "var(--cyan-accent)" }}>EDIT HACKATHON</DialogTitle></DialogHeader>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 font-mono text-xs">
                   <div className="space-y-2">
-                    <Label>Name</Label>
-                    <Input value={editHackathonData.name || ""} onChange={(e) => setEditHackathonData({...editHackathonData, name: e.target.value})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Name</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" value={editHackathonData.name || ""} onChange={(e) => setEditHackathonData({...editHackathonData, name: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <Label>URL</Label>
-                    <Input value={editHackathonData.url || ""} onChange={(e) => setEditHackathonData({...editHackathonData, url: e.target.value})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">URL</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" value={editHackathonData.url || ""} onChange={(e) => setEditHackathonData({...editHackathonData, url: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Input type="date" value={editHackathonData.start_date?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, start_date: e.target.value || null})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Start Date</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" type="date" value={editHackathonData.start_date?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, start_date: e.target.value || null})} />
                   </div>
                   <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Input type="date" value={editHackathonData.end_date?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, end_date: e.target.value || null})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">End Date</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" type="date" value={editHackathonData.end_date?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, end_date: e.target.value || null})} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Registration Deadline</Label>
-                    <Input type="date" value={editHackathonData.registration_deadline?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, registration_deadline: e.target.value || null})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Registration Deadline</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" type="date" value={editHackathonData.registration_deadline?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, registration_deadline: e.target.value || null})} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Submission Deadline</Label>
-                    <Input type="date" value={editHackathonData.submission_deadline?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, submission_deadline: e.target.value || null})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Submission Deadline</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" type="date" value={editHackathonData.submission_deadline?.split("T")[0] || ""} onChange={(e) => setEditHackathonData({...editHackathonData, submission_deadline: e.target.value || null})} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Team Size Min</Label>
-                    <Input type="number" value={editHackathonData.team_size_min || 1} onChange={(e) => setEditHackathonData({...editHackathonData, team_size_min: parseInt(e.target.value) || 1})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Team Size Min</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" type="number" value={editHackathonData.team_size_min || 1} onChange={(e) => setEditHackathonData({...editHackathonData, team_size_min: parseInt(e.target.value) || 1})} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Team Size Max</Label>
-                    <Input type="number" value={editHackathonData.team_size_max || 4} onChange={(e) => setEditHackathonData({...editHackathonData, team_size_max: parseInt(e.target.value) || 4})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Team Size Max</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" type="number" value={editHackathonData.team_size_max || 4} onChange={(e) => setEditHackathonData({...editHackathonData, team_size_max: parseInt(e.target.value) || 4})} />
                   </div>
                   <div className="space-y-2 sm:col-span-2">
-                    <Label>Prize Pool</Label>
-                    <Input value={editHackathonData.prize_pool || ""} onChange={(e) => setEditHackathonData({...editHackathonData, prize_pool: e.target.value})} />
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Prize Pool</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-white" value={editHackathonData.prize_pool || ""} onChange={(e) => setEditHackathonData({...editHackathonData, prize_pool: e.target.value})} />
                   </div>
                   <div className="space-y-2 sm:col-span-2">
-                    <Label>Description</Label>
+                    <Label className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider">Description</Label>
                     <textarea 
-                      className="w-full bg-[#0F1117] border border-[#1E2330] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00FF87] min-h-[100px]"
+                      className="w-full bg-[#0F1117] border border-[rgba(123,47,255,0.2)] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--cyan-accent)] min-h-[100px] text-white"
                       value={editHackathonData.description || ""} 
                       onChange={(e) => setEditHackathonData({...editHackathonData, description: e.target.value})} 
                     />
                   </div>
-                  <Button onClick={saveHackathonDetails} className="sm:col-span-2 w-full mt-2">Save Changes</Button>
+                  <Button onClick={saveHackathonDetails} className="sm:col-span-2 w-full mt-2 bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold">SAVE CHANGES</Button>
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-400 border-red-500/20 hover:bg-red-500/10 gap-1">
+            <Button variant="outline" size="sm" onClick={handleDelete} className="font-mono text-xs text-red-400 border-red-500/20 bg-[rgba(6,3,18,0.5)] hover:bg-red-500/10 hover:border-red-500 gap-1">
               <Trash2 className="w-3.5 h-3.5" /> Delete
             </Button>
           </div>
@@ -633,15 +635,17 @@ export default function HackathonDetailPage() {
 
       {/* Countdown Bar */}
       {daysLeft !== null && (
-        <div className="hack-card dash-card-glow rounded-xl p-4 flex items-center gap-4">
-          <Clock className="w-5 h-5 text-purple-400 shrink-0" />
+        <div className="hack-card dash-card-glow rounded-xl p-4 sm:p-5 border border-[rgba(123,47,255,0.2)] bg-[rgba(10,5,32,0.6)] flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[rgba(123,47,255,0.1)] flex items-center justify-center shrink-0 border border-[rgba(123,47,255,0.2)] shadow-[0_0_10px_rgba(123,47,255,0.1)]">
+            <Clock className="w-5 h-5 text-[var(--cyan-accent)]" />
+          </div>
           <div className="flex-1">
-            <p className="text-sm text-[#7A8099]">Submission Deadline</p>
-            <p className={`text-lg font-bold font-mono ${countdownClass}`}>
+            <p className="text-[10px] font-mono text-[var(--text-secondary)] uppercase tracking-wider mb-1">Submission Deadline</p>
+            <p className={`text-xl font-bold font-mono ${countdownClass}`}>
               {daysLeft > 0 ? `${daysLeft} days remaining` : daysLeft === 0 ? "Due today!" : "Deadline passed"}
             </p>
           </div>
-          <div className="text-right text-sm text-[#7A8099] font-mono">
+          <div className="text-right text-[11px] text-[#7A8099] font-mono hidden sm:block pt-4">
             {formatDate(hackathon.submission_deadline)}
           </div>
         </div>
@@ -650,13 +654,13 @@ export default function HackathonDetailPage() {
       {/* Tabs */}
       <Tabs defaultValue="overview" className="purple-tabs w-full">
         <div className="w-full overflow-x-auto pb-1 no-scrollbar">
-          <TabsList className="bg-[#0a0520] border border-purple-500/15 flex w-max sm:w-auto h-auto min-h-10">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="checklist">Checklist</TabsTrigger>
-            <TabsTrigger value="teammates">Find Teammates</TabsTrigger>
-            <TabsTrigger value="team">Team ({team.length})</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
+          <TabsList className="bg-[rgba(6,3,18,0.8)] border border-[rgba(123,47,255,0.15)] flex w-max sm:w-auto h-auto min-h-11 font-mono text-xs shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+            <TabsTrigger value="overview" className="data-[state=active]:text-[var(--cyan-accent)] data-[state=active]:bg-[rgba(0,229,255,0.05)] data-[state=active]:shadow-[inset_0_-2px_0_var(--cyan-accent)] rounded-none px-4 md:px-6">Overview</TabsTrigger>
+            <TabsTrigger value="checklist" className="data-[state=active]:text-[var(--cyan-accent)] data-[state=active]:bg-[rgba(0,229,255,0.05)] data-[state=active]:shadow-[inset_0_-2px_0_var(--cyan-accent)] rounded-none px-4 md:px-6">Checklist</TabsTrigger>
+            <TabsTrigger value="teammates" className="data-[state=active]:text-[var(--cyan-accent)] data-[state=active]:bg-[rgba(0,229,255,0.05)] data-[state=active]:shadow-[inset_0_-2px_0_var(--cyan-accent)] rounded-none px-4 md:px-6">Find Teammates</TabsTrigger>
+            <TabsTrigger value="team" className="data-[state=active]:text-[var(--cyan-accent)] data-[state=active]:bg-[rgba(0,229,255,0.05)] data-[state=active]:shadow-[inset_0_-2px_0_var(--cyan-accent)] rounded-none px-4 md:px-6">Team ({team.length})</TabsTrigger>
+            <TabsTrigger value="progress" className="data-[state=active]:text-[var(--cyan-accent)] data-[state=active]:bg-[rgba(0,229,255,0.05)] data-[state=active]:shadow-[inset_0_-2px_0_var(--cyan-accent)] rounded-none px-4 md:px-6">Progress</TabsTrigger>
+            <TabsTrigger value="notes" className="data-[state=active]:text-[var(--cyan-accent)] data-[state=active]:bg-[rgba(0,229,255,0.05)] data-[state=active]:shadow-[inset_0_-2px_0_var(--cyan-accent)] rounded-none px-4 md:px-6">Notes</TabsTrigger>
           </TabsList>
         </div>
 
@@ -664,23 +668,25 @@ export default function HackathonDetailPage() {
         <TabsContent value="overview" className="space-y-6 mt-6">
           {/* Banner */}
           {hackathon.banner_url && (
-            <div className="rounded-xl overflow-hidden h-48 border border-[#1E2330]">
+            <div className="rounded-xl overflow-hidden h-48 border border-[rgba(123,47,255,0.2)] shadow-[0_0_20px_rgba(123,47,255,0.1)]">
               <img src={hackathon.banner_url} alt={hackathon.name} className="w-full h-full object-cover" />
             </div>
           )}
 
           {/* Description */}
           {hackathon.description && (
-            <div className="hack-card rounded-xl p-5">
-              <h3 className="text-sm font-medium text-[#7A8099] mb-2">Description</h3>
-              <p className="text-sm leading-relaxed text-[#E8EAF0]">{hackathon.description}</p>
+            <div className="hack-card dash-card-glow rounded-xl p-6 border border-[rgba(123,47,255,0.2)] bg-[rgba(10,5,32,0.6)] shadow-[0_0_20px_rgba(123,47,255,0.03)]">
+              <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span className="text-[var(--purple-primary)]">//</span> Description
+              </h3>
+              <p className="text-sm font-mono leading-relaxed text-[#E8EAF0] whitespace-pre-wrap">{hackathon.description}</p>
             </div>
           )}
 
           {/* Live Timeline */}
-          <div className="hack-card rounded-xl p-5">
-            <h3 className="text-sm font-medium text-[#7A8099] mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Timeline
+          <div className="hack-card dash-card-glow rounded-xl p-6 border border-[rgba(123,47,255,0.2)] bg-[rgba(10,5,32,0.6)] shadow-[0_0_20px_rgba(123,47,255,0.03)]">
+            <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-widest mb-5 flex items-center gap-2">
+              <span className="text-[var(--purple-primary)]">//</span> Timeline
             </h3>
             <div className="space-y-2">
               {[
@@ -701,14 +707,14 @@ export default function HackathonDetailPage() {
                   return (
                     <div
                       key={d.label}
-                      className={`flex items-center gap-3 bg-[#151820] rounded-lg px-4 py-3 border border-[#1E2330] ${isPast ? "opacity-50" : ""}`}
+                      className={`flex items-center gap-3 bg-[rgba(6,3,18,0.3)] rounded-lg px-4 py-3 border border-[rgba(123,47,255,0.1)] transition-colors hover:border-[rgba(123,47,255,0.3)] ${isPast ? "opacity-50" : ""}`}
                     >
-                      <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${isPast ? "bg-[#1E2330]" : "bg-[#00FF87]/10"}`}>
-                        <d.Icon className={`w-3.5 h-3.5 ${isPast ? "text-[#454D66]" : "text-[#00FF87]"}`} />
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${isPast ? "bg-[#1E2330] border-[#2A3045]" : "bg-[rgba(0,212,255,0.1)] border-[#00D4FF]/20 shadow-[0_0_8px_rgba(0,212,255,0.2)]"}`}>
+                        <d.Icon className={`w-3.5 h-3.5 ${isPast ? "text-[#454D66]" : "text-[var(--cyan-accent)]"}`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-xs ${isPast ? "text-[#454D66] line-through" : "text-[#7A8099]"}`}>{d.label}</p>
-                        <p className={`text-sm font-medium font-mono ${isPast ? "text-[#454D66]" : "text-[#E8EAF0]"}`}>{formatDate(d.date)}</p>
+                        <p className={`text-[10px] font-mono uppercase tracking-wider ${isPast ? "text-[#454D66] font-normal" : "text-[var(--text-secondary)] font-bold"}`}>{d.label}</p>
+                        <p className={`text-sm font-medium font-mono ${isPast ? "text-[#454D66] line-through decoration-[#454D66]" : "text-[#E8EAF0]"}`}>{formatDate(d.date)}</p>
                       </div>
                       <CountdownTimer deadline={d.date} compact />
                     </div>
@@ -722,7 +728,7 @@ export default function HackathonDetailPage() {
                 { label: "Submission", date: hackathon.submission_deadline },
                 { label: "Results", date: hackathon.result_date },
               ].filter((d) => !d.date).length > 0 && (
-                <p className="text-[10px] text-[#454D66] text-right font-mono pt-1">
+                <p className="text-[10px] text-[#454D66] text-right font-mono pt-2">
                   {[
                     { label: "Start Date", date: hackathon.start_date },
                     { label: "Registration", date: hackathon.registration_deadline },
@@ -736,47 +742,49 @@ export default function HackathonDetailPage() {
           </div>
 
           {/* Prizes & Team Size */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {hackathon.prize_pool && (
-              <div className="hack-card rounded-xl p-5">
-                <h3 className="text-sm font-medium text-[#7A8099] mb-2 flex items-center gap-2">
-                  <Trophy className="w-4 h-4" /> Prize Pool
+              <div className="hack-card dash-card-glow rounded-xl p-6 border border-[rgba(123,47,255,0.2)] bg-[rgba(10,5,32,0.6)] shadow-[0_0_20px_rgba(123,47,255,0.03)]">
+                <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span className="text-[var(--purple-primary)]">//</span> Prize Pool
                 </h3>
-                <p className="text-xl font-bold font-mono text-[#00FF87]">{hackathon.prize_pool}</p>
+                <p className="text-2xl font-bold font-mono text-[var(--gold)] drop-shadow-[0_0_8px_rgba(255,215,0,0.5)] mt-1">{hackathon.prize_pool}</p>
               </div>
             )}
-            <div className="hack-card rounded-xl p-5">
-              <h3 className="text-sm font-medium text-[#7A8099] mb-2 flex items-center gap-2">
-                <Users className="w-4 h-4" /> Team Size
+            <div className="hack-card dash-card-glow rounded-xl p-6 border border-[rgba(123,47,255,0.2)] bg-[rgba(10,5,32,0.6)] shadow-[0_0_20px_rgba(123,47,255,0.03)]">
+              <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="text-[var(--purple-primary)]">//</span> Team Size
               </h3>
-              <p className="text-xl font-bold font-mono text-[#E8EAF0]">
-                {hackathon.team_size_min || 1} – {hackathon.team_size_max || 4} members
+              <p className="text-2xl font-bold font-mono text-[#E8EAF0] mt-1">
+                {hackathon.team_size_min || 1} – {hackathon.team_size_max || 4} <span className="text-sm text-[var(--text-secondary)]">members</span>
               </p>
             </div>
           </div>
 
           {/* Problem Statements */}
           {(problems.length > 0 || isOwner) && (
-            <div className="hack-card rounded-xl p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-[#7A8099]">Problem Statements / Tracks</h3>
+            <div className="hack-card dash-card-glow rounded-xl p-6 border border-[rgba(123,47,255,0.2)] bg-[rgba(10,5,32,0.6)] shadow-[0_0_20px_rgba(123,47,255,0.03)]">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-widest flex items-center gap-2">
+                  <span className="text-[var(--purple-primary)]">//</span> Problem Statements
+                </h3>
                 {isOwner && (
                   <Dialog open={showAddProblem} onOpenChange={setShowAddProblem}>
                     <DialogTrigger asChild>
-                      <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 text-[#00FF87] hover:text-[#00FF87] hover:bg-[#00FF87]/10"><Plus className="w-3 h-3"/> Add</Button>
+                      <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 font-mono text-[var(--cyan-accent)] hover:text-[#00D4FF] hover:bg-[rgba(0,212,255,0.1)] border border-transparent hover:border-[rgba(0,212,255,0.2)]"><Plus className="w-3 h-3"/> Add</Button>
                     </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader><DialogTitle>Add Problem Statement</DialogTitle></DialogHeader>
-                      <div className="space-y-4 pt-2">
+                    <DialogContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                      <DialogHeader><DialogTitle className="pixel text-sm text-[var(--cyan-accent)]">ADD PROBLEM STATEMENT</DialogTitle></DialogHeader>
+                      <div className="space-y-4 pt-2 font-mono text-xs">
                         <div className="space-y-2">
-                          <Label>Title / Description *</Label>
-                          <Input value={newProblemTitle} onChange={(e) => setNewProblemTitle(e.target.value)} placeholder="e.g. Build an AI-powered assistant" />
+                          <Label className="text-[var(--text-secondary)]">Title / Description *</Label>
+                          <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-[#E8EAF0]" value={newProblemTitle} onChange={(e) => setNewProblemTitle(e.target.value)} placeholder="e.g. Build an AI-powered assistant" />
                         </div>
                         <div className="space-y-2">
-                          <Label>Track (Optional)</Label>
-                          <Input value={newProblemTrack} onChange={(e) => setNewProblemTrack(e.target.value)} placeholder="e.g. Web3, GenAI, Open Innovation" />
+                          <Label className="text-[var(--text-secondary)]">Track (Optional)</Label>
+                          <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-[#E8EAF0]" value={newProblemTrack} onChange={(e) => setNewProblemTrack(e.target.value)} placeholder="e.g. Web3, GenAI, Open Innovation" />
                         </div>
-                        <Button onClick={addProblemStatement} className="w-full">Save</Button>
+                        <Button onClick={addProblemStatement} className="w-full bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold">SAVE</Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -785,11 +793,11 @@ export default function HackathonDetailPage() {
               {problems.length > 0 ? (
                 <div className="space-y-2">
                   {problems.map((ps) => (
-                    <div key={ps.id} className="flex items-center gap-3 bg-[#151820] rounded-lg px-4 py-3 text-sm border border-[#1E2330]">
-                      {ps.track && <span className="text-[#00FF87] font-medium font-mono whitespace-nowrap">{ps.track}</span>}
+                    <div key={ps.id} className="flex items-center gap-3 bg-[rgba(6,3,18,0.3)] rounded-lg px-4 py-3 text-sm border border-[rgba(123,47,255,0.1)] transition-colors hover:border-[rgba(123,47,255,0.3)]">
+                      {ps.track && <span className="text-[var(--cyan-accent)] font-bold font-mono text-[10px] uppercase whitespace-nowrap px-2 py-0.5 rounded-sm bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.2)] shadow-[0_0_5px_rgba(0,212,255,0.1)]">{ps.track}</span>}
                       <span className="text-[#E8EAF0] flex-1 min-w-0 break-words">{ps.title}</span>
                       {isOwner && (
-                        <button onClick={() => deleteProblemStatement(ps.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1 shrink-0">
+                        <button onClick={() => deleteProblemStatement(ps.id)} className="text-[#454D66] hover:text-red-400 transition-colors p-1 shrink-0 bg-[rgba(6,3,18,0.5)] rounded-md border border-transparent hover:border-red-500/30 hover:bg-red-500/10">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -797,25 +805,27 @@ export default function HackathonDetailPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-[#454D66] italic">No problem statements added yet.</p>
+                <p className="text-xs font-mono text-[#454D66] italic">// No problem statements added yet.</p>
               )}
             </div>
           )}
           {/* AI Project Ideas */}
-          <div className="hack-card rounded-xl p-5">
+          <div className="hack-card dash-card-glow rounded-xl p-5 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FF87]/20 to-[#00D4FF]/20 flex items-center justify-center">
-                  <Brain className="w-4 h-4 text-[#00FF87]" />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(0,212,255,0.1)] flex items-center justify-center border border-[rgba(0,212,255,0.2)] shadow-[0_0_8px_rgba(0,212,255,0.2)]">
+                  <Brain className="w-4 h-4 text-[var(--cyan-accent)]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#E8EAF0]">AI Project Ideas</h3>
-                  <p className="text-[10px] text-[#454D66]">Powered by LLaMA 3.3</p>
+                  <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider mb-0.5 flex items-center gap-2">
+                    <span className="text-[var(--text-secondary)]">//</span> AI Project Ideas
+                  </h3>
+                  <p className="text-[10px] text-[var(--text-secondary)] font-mono">POWERED BY LLAMA 3.3</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {generationCount > 0 && (
-                  <span className="text-[10px] font-mono text-[#454D66] px-2 py-0.5 rounded-full bg-[#151820] border border-[#1E2330]">
+                  <span className="text-[10px] font-mono text-[var(--text-secondary)] px-2 py-0.5 rounded-sm bg-[rgba(6,3,18,0.5)] border border-[rgba(123,47,255,0.2)]">
                     {generationCount}/3 used
                   </span>
                 )}
@@ -824,16 +834,16 @@ export default function HackathonDetailPage() {
                     size="sm"
                     onClick={generateIdeas}
                     disabled={generatingIdeas || generationCount >= 3}
-                    className="gap-1.5 text-xs h-8 bg-gradient-to-r from-[#00FF87] to-[#00D4FF] text-[#0F1117] hover:opacity-90 font-semibold shadow-sm shadow-[#00FF87]/10 disabled:opacity-50"
+                    className="gap-1.5 text-xs h-8 font-mono bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold border border-transparent disabled:opacity-50"
                   >
                     {generatingIdeas ? (
-                      <><Loader2 className="w-3 h-3 animate-spin" /> Thinking...</>
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> THINKING...</>
                     ) : generationCount >= 3 ? (
-                      <>Limit Reached</>
+                      <>LIMIT REACHED</>
                     ) : aiIdeas.length > 0 ? (
-                      <><RefreshCw className="w-3 h-3" /> Regenerate</>
+                      <><RefreshCw className="w-3.5 h-3.5" /> REGENERATE</>
                     ) : (
-                      <><Sparkles className="w-3 h-3" /> Generate Ideas</>
+                      <><Sparkles className="w-3.5 h-3.5" /> GENERATE IDEAS</>
                     )}
                   </Button>
                 ) : null}
@@ -843,9 +853,9 @@ export default function HackathonDetailPage() {
             {/* No problem statements message */}
             {problems.length === 0 && (
               <div className="text-center py-8">
-                <Lightbulb className="w-10 h-10 text-[#1E2330] mx-auto mb-3" />
-                <p className="text-sm text-[#7A8099] mb-1">Add problem statements first</p>
-                <p className="text-xs text-[#454D66]">AI needs your hackathon&apos;s tracks to generate targeted ideas</p>
+                <Lightbulb className="w-10 h-10 text-[var(--text-secondary)] mx-auto mb-3 opacity-50" />
+                <p className="text-xs font-mono text-[var(--text-secondary)] mb-1">ADD PROBLEM STATEMENTS FIRST</p>
+                <p className="text-[10px] font-mono text-[#454D66]">// AI needs your hackathon's tracks to generate targeted ideas</p>
               </div>
             )}
 
@@ -860,22 +870,22 @@ export default function HackathonDetailPage() {
             {generatingIdeas && (
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-[#151820] rounded-xl p-4 border border-[#1E2330] animate-pulse">
+                  <div key={i} className="bg-[rgba(6,3,18,0.3)] rounded-xl p-4 border border-[rgba(123,47,255,0.1)] animate-pulse">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#252A3A] shrink-0" />
+                      <div className="w-8 h-8 rounded-lg bg-[rgba(123,47,255,0.1)] shrink-0" />
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 w-2/3 bg-[#252A3A] rounded" />
-                        <div className="h-3 w-full bg-[#252A3A] rounded" />
+                        <div className="h-4 w-2/3 bg-[rgba(123,47,255,0.1)] rounded" />
+                        <div className="h-3 w-full bg-[rgba(123,47,255,0.05)] rounded" />
                         <div className="flex gap-2">
-                          <div className="h-5 w-16 bg-[#252A3A] rounded-full" />
-                          <div className="h-5 w-20 bg-[#252A3A] rounded-full" />
-                          <div className="h-5 w-14 bg-[#252A3A] rounded-full" />
+                          <div className="h-5 w-16 bg-[rgba(123,47,255,0.1)] rounded" />
+                          <div className="h-5 w-20 bg-[rgba(123,47,255,0.1)] rounded" />
+                          <div className="h-5 w-14 bg-[rgba(123,47,255,0.1)] rounded" />
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
-                <p className="text-center text-xs text-[#454D66] font-mono animate-pulse">Thinking of winning ideas...</p>
+                <p className="text-center text-xs text-[#454D66] font-mono animate-pulse">// THINKING OF WINNING IDEAS...</p>
               </div>
             )}
 
@@ -884,9 +894,9 @@ export default function HackathonDetailPage() {
               <div className="space-y-3">
                 {aiIdeas.map((idea, idx) => {
                   const difficultyColors: Record<string, string> = {
-                    beginner: "bg-[#00FF87]/15 text-[#00FF87] border-[#00FF87]/25",
-                    intermediate: "bg-[#EF9F27]/15 text-[#EF9F27] border-[#EF9F27]/25",
-                    advanced: "bg-red-500/15 text-red-400 border-red-500/25",
+                    beginner: "bg-[rgba(0,255,135,0.1)] text-[#00FF87] border-[rgba(0,255,135,0.2)]",
+                    intermediate: "bg-[rgba(239,159,39,0.1)] text-[#EF9F27] border-[rgba(239,159,39,0.2)]",
+                    advanced: "bg-red-500/10 text-red-400 border-red-500/20",
                   };
                   return (
                     <motion.div
@@ -894,17 +904,17 @@ export default function HackathonDetailPage() {
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.1, duration: 0.3 }}
-                      className="bg-[#151820] rounded-xl p-4 border border-[#1E2330] hover:border-[#2A3045] transition-all group"
+                      className="bg-[rgba(6,3,18,0.5)] rounded-xl p-4 border border-[rgba(123,47,255,0.1)] hover:border-[var(--cyan-accent)] transition-all group shadow-sm hover:shadow-[0_0_10px_rgba(0,212,255,0.1)]"
                     >
                       <div className="flex items-start gap-3">
                         {/* Number badge */}
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FF87]/15 to-[#00D4FF]/15 flex items-center justify-center text-xs font-bold text-[#00FF87] shrink-0 border border-[#00FF87]/10">
+                        <div className="w-8 h-8 rounded-lg bg-[rgba(0,212,255,0.1)] flex items-center justify-center text-xs font-mono font-bold text-[var(--cyan-accent)] shrink-0 border border-[rgba(0,212,255,0.2)]">
                           {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
                           {/* Title + tagline */}
-                          <h4 className="text-sm font-semibold text-[#E8EAF0] mb-0.5 leading-snug">{idea.title}</h4>
-                          <p className="text-xs text-[#7A8099] mb-3 leading-relaxed">{idea.tagline}</p>
+                          <h4 className="text-sm font-semibold text-[#E8EAF0] mb-1 leading-snug pixel" style={{ textShadow: "0 0 10px rgba(123,47,255,0.3)" }}>{idea.title}</h4>
+                          <p className="text-xs text-[#7A8099] font-mono mb-3 leading-relaxed">// {idea.tagline}</p>
 
                           {/* Track */}
                           {idea.track && (
@@ -992,69 +1002,72 @@ export default function HackathonDetailPage() {
 
         {/* Team Tab */}
         <TabsContent value="team" className="space-y-4 mt-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <h3 className="font-semibold text-[#E8EAF0]">Team Members</h3>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+              <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider flex items-center gap-2">
+                <span className="text-[var(--text-secondary)]">//</span> Team Members
+              </h3>
+              <span className={`text-[10px] px-2 py-0.5 rounded-sm font-mono border ${
                 team.length >= (hackathon?.team_size_max || 4)
-                  ? 'bg-red-500/20 text-red-400'
-                  : 'bg-[#1A1F2E] text-[#7A8099]'
+                  ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                  : 'bg-[rgba(6,3,18,0.5)] text-[#E8EAF0] border-[rgba(123,47,255,0.2)]'
               }`}>
-                {team.length}/{hackathon?.team_size_max || 4} members
+                {team.length}/{hackathon?.team_size_max || 4}
               </span>
             </div>
             <Dialog open={showAddMember} onOpenChange={setShowAddMember}>
               <DialogTrigger asChild>
                 <Button
                   size="sm"
-                  className="gap-1"
+                  variant="outline"
+                  className="gap-1 font-mono text-xs border-[rgba(123,47,255,0.3)] bg-[rgba(6,3,18,0.5)] hover:bg-[rgba(123,47,255,0.1)] hover:border-[var(--cyan-accent)] text-[#E8EAF0] transition-colors"
                   disabled={!isOwner || team.length >= (hackathon?.team_size_max || 4)}
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  {!isOwner ? 'Owner Only' : team.length >= (hackathon?.team_size_max || 4) ? 'Team Full' : 'Add Member'}
+                  <Plus className="w-3.5 h-3.5 text-[var(--cyan-accent)]" />
+                  {!isOwner ? 'OWNER ONLY' : team.length >= (hackathon?.team_size_max || 4) ? 'TEAM FULL' : 'ADD MEMBER'}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Add Team Member</DialogTitle></DialogHeader>
-                <div className="space-y-4 pt-2">
+              <DialogContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                <DialogHeader><DialogTitle className="pixel text-sm text-[var(--cyan-accent)]">ADD TEAM MEMBER</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2 font-mono text-xs">
                   <div className="space-y-2">
-                    <Label>Name *</Label>
-                    <Input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Member name" />
+                    <Label className="text-[var(--text-secondary)]">Name *</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-[#E8EAF0]" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Member name" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input value={newMemberEmail} onChange={(e) => setNewMemberEmail(e.target.value)} placeholder="member@email.com (sends invite)" />
+                    <Label className="text-[var(--text-secondary)]">Email</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-[#E8EAF0]" value={newMemberEmail} onChange={(e) => setNewMemberEmail(e.target.value)} placeholder="member@email.com (sends invite)" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Role</Label>
+                    <Label className="text-[var(--text-secondary)]">Role</Label>
                     <Select value={newMemberRole} onValueChange={setNewMemberRole}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      <SelectTrigger className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] text-[#E8EAF0]"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                        {ROLES.map((r) => <SelectItem key={r} value={r} className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">{r}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={addTeamMember} className="w-full">Save Member</Button>
+                  <Button onClick={addTeamMember} className="w-full bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold">SAVE MEMBER</Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
           {team.length === 0 ? (
-            <div className="text-center py-12 text-[#7A8099]">
-              <Users className="w-12 h-12 mx-auto mb-3 text-[#1E2330]" />
-              <p className="text-sm">No team members yet</p>
+            <div className="text-center py-12 text-[#454D66]">
+              <Users className="w-10 h-10 mx-auto mb-3 opacity-50" />
+              <p className="text-xs font-mono">// NO TEAM MEMBERS YET</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {team.map((m) => (
-                <div key={m.id} className="hack-card rounded-xl p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#00FF87]/10 flex items-center justify-center text-sm font-bold text-[#00FF87] shrink-0">
+                <div key={m.id} className="hack-card dash-card-glow rounded-xl p-4 flex items-center gap-3 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)]">
+                  <div className="w-10 h-10 rounded-lg bg-[rgba(123,47,255,0.1)] flex items-center justify-center text-sm font-bold text-[#E8EAF0] shrink-0 border border-[rgba(123,47,255,0.2)] shadow-[0_0_8px_rgba(123,47,255,0.1)] pixel">
                     {m.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-[#E8EAF0] truncate">{m.name}</p>
-                    <p className="text-xs text-[#7A8099]">{m.role}</p>
+                    <p className="font-bold text-sm text-[var(--cyan-accent)] truncate">{m.name}</p>
+                    <p className="text-[10px] font-mono font-medium text-[var(--text-secondary)] uppercase tracking-wide">{m.role}</p>
                   </div>
                   {isOwner && (
                     <div className="flex items-center gap-1 shrink-0">
@@ -1068,28 +1081,28 @@ export default function HackathonDetailPage() {
                         }
                       }}>
                         <DialogTrigger asChild>
-                          <button className="text-[#454D66] hover:text-[#00FF87] transition-colors p-1">
-                            <Pencil className="w-4 h-4" />
+                          <button className="text-[var(--text-secondary)] hover:text-[var(--cyan-accent)] transition-colors p-1.5 hover:bg-[rgba(123,47,255,0.1)] rounded-md">
+                            <Pencil className="w-3.5 h-3.5" />
                           </button>
                         </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader><DialogTitle>Edit Member</DialogTitle></DialogHeader>
-                          <div className="space-y-4 pt-2">
+                        <DialogContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                          <DialogHeader><DialogTitle className="pixel text-sm text-[var(--cyan-accent)]">EDIT MEMBER</DialogTitle></DialogHeader>
+                          <div className="space-y-4 pt-2 font-mono text-xs">
                             <div className="space-y-2">
-                              <Label>Name *</Label>
-                              <Input value={editMemberData?.name || ""} onChange={(e) => setEditMemberData(prev => prev ? {...prev, name: e.target.value} : null)} placeholder="Name" />
+                              <Label className="text-[var(--text-secondary)]">Name *</Label>
+                              <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-[#E8EAF0]" value={editMemberData?.name || ""} onChange={(e) => setEditMemberData(prev => prev ? {...prev, name: e.target.value} : null)} placeholder="Name" />
                             </div>
                             <div className="space-y-2">
-                              <Label>Role</Label>
+                              <Label className="text-[var(--text-secondary)]">Role</Label>
                               <Select value={editMemberData?.role || ""} onValueChange={(val) => setEditMemberData(prev => prev ? {...prev, role: val} : null)}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                  <SelectItem value="Member">Member</SelectItem>
+                                <SelectTrigger className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] text-[#E8EAF0]"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                                  {ROLES.map((r) => <SelectItem key={r} value={r} className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">{r}</SelectItem>)}
+                                  <SelectItem value="Member" className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">Member</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
-                            <Button onClick={saveMemberEdit} className="w-full">Save Changes</Button>
+                            <Button onClick={saveMemberEdit} className="w-full bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold">SAVE CHANGES</Button>
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -1104,14 +1117,16 @@ export default function HackathonDetailPage() {
           )}
 
           {invites.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-[#7A8099] mb-2">Pending Invites</h4>
-              <div className="space-y-2">
+            <div className="mt-8 pt-6 border-t border-[rgba(123,47,255,0.2)]">
+              <h4 className="text-sm font-mono font-bold text-[var(--cyan-accent)] mb-3 flex items-center gap-2 uppercase tracking-wider">
+                <span className="text-[var(--text-secondary)]">//</span> Pending Invites
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {invites.map((invite) => (
-                  <div key={invite.id} className="bg-[#151820] rounded-lg border border-[#1E2330] px-3 py-2 text-sm flex items-center justify-between">
-                    <div>
-                      <p className="text-[#E8EAF0]">{invite.email}</p>
-                      <p className="text-[#7A8099] text-xs">{invite.role || "Member"} • Pending</p>
+                  <div key={invite.id} className="hack-card dash-card-glow rounded-xl p-3 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)] flex items-center justify-between">
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs font-mono text-[#E8EAF0] truncate">{invite.email}</p>
+                      <p className="text-[10px] text-[#454D66] font-mono uppercase mt-0.5 tracking-wider">{invite.role || "Member"} // Pending</p>
                     </div>
                   </div>
                 ))}
@@ -1122,90 +1137,94 @@ export default function HackathonDetailPage() {
 
         {/* Progress Tab — Kanban */}
         <TabsContent value="progress" className="space-y-4 mt-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <h3 className="font-semibold text-[#E8EAF0]">Progress Tracker</h3>
-              <div className="flex items-center gap-2 text-sm text-[#7A8099]">
-                <Progress value={taskProgress} className="w-32 h-2" />
-                <span className="font-mono">{taskProgress}%</span>
+              <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider flex items-center gap-2">
+                <span className="text-[var(--text-secondary)]">//</span> Progress Tracker
+              </h3>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-[var(--text-secondary)] bg-[rgba(6,3,18,0.5)] px-3 py-1.5 rounded-sm border border-[rgba(123,47,255,0.2)]">
+                <Progress value={taskProgress} className="w-24 sm:w-32 h-1.5 bg-[rgba(123,47,255,0.1)] [&>div]:bg-[var(--cyan-accent)]" />
+                <span>{taskProgress}%</span>
               </div>
             </div>
             <Dialog open={showAddTask} onOpenChange={setShowAddTask}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1"><Plus className="w-3.5 h-3.5" /> Add Task</Button>
+                <Button size="sm" variant="outline" className="gap-1 font-mono text-xs border-[rgba(123,47,255,0.3)] bg-[rgba(6,3,18,0.5)] hover:bg-[rgba(123,47,255,0.1)] hover:border-[var(--cyan-accent)] text-[#E8EAF0] transition-colors">
+                  <Plus className="w-3.5 h-3.5 text-[var(--cyan-accent)]" /> ADD TASK
+                </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Add Task</DialogTitle></DialogHeader>
-                <div className="space-y-4 pt-2">
+              <DialogContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                <DialogHeader><DialogTitle className="pixel text-sm text-[var(--cyan-accent)]">ADD TASK</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2 font-mono text-xs">
                   <div className="space-y-2">
-                    <Label>Title *</Label>
-                    <Input value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Task title" />
+                    <Label className="text-[var(--text-secondary)]">Title *</Label>
+                    <Input className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--cyan-accent)] text-[#E8EAF0]" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Task title" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Column</Label>
+                    <Label className="text-[var(--text-secondary)]">Column</Label>
                     <Select value={newTaskStatus} onValueChange={setNewTaskStatus}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {KANBAN_COLUMNS.map((c) => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}
+                      <SelectTrigger className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] text-[#E8EAF0]"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                        {KANBAN_COLUMNS.map((c) => <SelectItem key={c.key} value={c.key} className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">{c.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Priority</Label>
+                    <Label className="text-[var(--text-secondary)]">Priority</Label>
                     <Select value={newTaskPriority} onValueChange={setNewTaskPriority}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectTrigger className="bg-[#0F1117] border-[rgba(123,47,255,0.2)] text-[#E8EAF0]"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-[#0a0520] border-[rgba(123,47,255,0.2)]">
+                        <SelectItem value="low" className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">Low</SelectItem>
+                        <SelectItem value="medium" className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">Medium</SelectItem>
+                        <SelectItem value="high" className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">High</SelectItem>
+                        <SelectItem value="urgent" className="font-mono text-xs text-[#E8EAF0] focus:bg-[rgba(123,47,255,0.1)] focus:text-[var(--cyan-accent)]">Urgent</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={addTask} className="w-full">Add Task</Button>
+                  <Button onClick={addTask} className="w-full bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold">SAVE TASK</Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
           {/* Kanban Board */}
-          <div className="flex gap-3 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[rgba(123,47,255,0.3)] scrollbar-track-[rgba(6,3,18,0.5)]">
             {KANBAN_COLUMNS.map((col) => {
               const colTasks = tasks.filter((t) => t.status === col.key);
               return (
-                <div key={col.key} className="flex-shrink-0 w-60">
-                  <div className="frosted-glass rounded-lg p-3 mb-2">
+                <div key={col.key} className="flex-shrink-0 w-72">
+                  <div className="bg-[rgba(6,3,18,0.8)] border-b border-[rgba(123,47,255,0.3)] rounded-t-lg p-3 mb-3 shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-[#E8EAF0]">{col.label}</span>
-                      <span className="text-xs text-[#7A8099] bg-[#0F1117]/50 px-2 py-0.5 rounded-full font-mono">{colTasks.length}</span>
+                      <span className="text-[11px] font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider">{col.label}</span>
+                      <span className="text-[10px] text-[var(--text-secondary)] bg-[rgba(123,47,255,0.1)] px-2 py-0.5 rounded-sm font-mono border border-[rgba(123,47,255,0.2)]">{colTasks.length}</span>
                     </div>
                   </div>
-                  <div className="space-y-2 min-h-[200px]">
+                  <div className="space-y-3 min-h-[200px] p-1">
                     {colTasks.map((task) => (
                       <motion.div
                         key={task.id}
                         layout
-                        className="hack-card rounded-lg p-3 cursor-default"
+                        className="hack-card dash-card-glow rounded-lg p-3 cursor-default border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)] shadow-sm hover:shadow-[0_0_8px_rgba(123,47,255,0.2)] transition-shadow"
                       >
-                        <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex items-start justify-between gap-2 mb-3">
                           <p className="text-sm font-medium leading-snug text-[#E8EAF0]">{task.title}</p>
-                          <button onClick={() => deleteTask(task.id)} className="text-[#454D66] hover:text-red-400 transition-colors shrink-0">
+                          <button onClick={() => deleteTask(task.id)} className="text-[#454D66] hover:text-red-400 transition-colors shrink-0 p-1 bg-[rgba(6,3,18,0.5)] rounded-md border border-transparent hover:border-red-500/30 hover:bg-red-500/10">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getPriorityColor(task.priority)}`}>
+                        <div className="flex items-center justify-between mt-auto">
+                          <span className={`px-2 py-0.5 rounded-sm text-[10px] font-mono uppercase font-bold border ${getPriorityColor(task.priority)}`}>
                             {task.priority}
                           </span>
                           {/* Move buttons */}
-                          <div className="flex gap-1">
+                          <div className="flex gap-1.5">
                             {KANBAN_COLUMNS.map((target) => {
                               if (target.key === col.key) return null;
                               return (
                                 <button
                                   key={target.key}
                                   onClick={() => moveTask(task.id, target.key)}
-                                  className="text-[10px] px-1.5 py-0.5 rounded bg-[#151820] text-[#7A8099] hover:bg-[#1E2330] hover:text-[#E8EAF0] transition-colors border border-[#1E2330]"
+                                  className="text-[9px] px-1.5 py-0.5 rounded-sm bg-[rgba(6,3,18,0.8)] text-[var(--text-secondary)] hover:bg-[rgba(123,47,255,0.1)] hover:text-[var(--cyan-accent)] hover:border-[var(--cyan-accent)] transition-colors border border-[rgba(123,47,255,0.2)] font-mono uppercase"
                                   title={`Move to ${target.label}`}
                                 >
                                   {target.label.split(" ")[0]}
@@ -1225,26 +1244,26 @@ export default function HackathonDetailPage() {
 
         {/* Notes Tab */}
         <TabsContent value="notes" className="space-y-4 mt-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold flex items-center gap-2 text-[#E8EAF0]">
-              <FileText className="w-4 h-4 text-[#00FF87]" /> Notes
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider flex items-center gap-2">
+              <span className="text-[var(--text-secondary)]">//</span> Notes & Scratchpad
             </h3>
-            <Button size="sm" onClick={saveNote} disabled={savingNote} className="gap-1">
-              {savingNote ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-              Save
+            <Button size="sm" onClick={saveNote} disabled={savingNote} className="gap-1.5 font-mono text-xs bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black font-bold border border-transparent disabled:opacity-50">
+              {savingNote ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              SAVE NOTES
             </Button>
           </div>
-          <div className="hack-card rounded-xl overflow-hidden">
+          <div className="hack-card dash-card-glow rounded-xl overflow-hidden border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)]">
             <textarea
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
-              placeholder="Write your notes here... Ideas, tech stack decisions, API keys, mentor feedback, etc."
-              className="w-full min-h-[400px] bg-transparent p-5 text-sm leading-relaxed resize-none focus:outline-none placeholder:text-[#454D66] text-[#E8EAF0] font-mono"
+              placeholder="// Write your notes here... Ideas, tech stack decisions, API keys, mentor feedback, etc."
+              className="w-full min-h-[400px] bg-transparent p-5 text-sm leading-relaxed resize-y focus:outline-none placeholder:text-[#454D66] text-[#E8EAF0] font-mono selection:bg-[var(--cyan-accent)] selection:text-black"
             />
           </div>
           {note && (
-            <p className="text-xs text-[#454D66] text-right font-mono">
-              Last saved: {formatDate(note.updated_at)}
+            <p className="text-[10px] text-[#454D66] text-right font-mono uppercase">
+              LAST SAVED: {formatDate(note.updated_at)}
             </p>
           )}
         </TabsContent>
