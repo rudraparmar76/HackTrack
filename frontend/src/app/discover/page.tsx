@@ -93,8 +93,7 @@ function DeadlineBadge({ date }: { date: string | null }) {
 
   if (days < 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#454D66]/20 text-[#7A8099]">
-        <Clock className="w-3 h-3" />
+      <span style={{ color: "var(--text-secondary)", opacity: 0.5, fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", padding: "2px 6px", background: "rgba(255,255,255,0.05)", borderRadius: "2px" }}>
         Closed
       </span>
     );
@@ -102,34 +101,22 @@ function DeadlineBadge({ date }: { date: string | null }) {
 
   if (days === 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
-        <Clock className="w-3 h-3" />
-        Last Day!
+      <span style={{ background: "rgba(255,51,51,0.15)", border: "1px solid rgba(255,51,51,0.4)", color: "#ff3333", fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", padding: "2px 6px", borderRadius: "2px" }}>
+        DUE TODAY
       </span>
     );
   }
 
   if (days <= 3) {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">
-        <Clock className="w-3 h-3" />
-        {days}d left
-      </span>
-    );
-  }
-
-  if (days <= 7) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EF9F27]/20 text-[#EF9F27] border border-[#EF9F27]/30">
-        <Clock className="w-3 h-3" />
+      <span style={{ background: "rgba(255,165,0,0.1)", border: "1px solid rgba(255,165,0,0.3)", color: "#ffaa00", fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", padding: "2px 6px", borderRadius: "2px" }}>
         {days}d left
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/20">
-      <Clock className="w-3 h-3" />
+    <span style={{ background: "rgba(123,47,255,0.1)", border: "1px solid var(--border-glow)", color: "var(--text-secondary)", fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", padding: "2px 6px", borderRadius: "2px" }}>
       {days}d left
     </span>
   );
@@ -161,54 +148,137 @@ function HackathonCard({
   onTrack: (h: PublicHackathon) => void;
   isTracking: boolean;
 }) {
+  const uniqueTags = [...new Set(hackathon.tags || [])].slice(0, 3);
+  const isValidDate = (d: string | null) => d && !isNaN(new Date(d).getTime());
+
+  // Determine mode badge styles
+  let modeBorder = "var(--border-glow)";
+  let modeText = "var(--text-secondary)";
+  const lDesc = (hackathon.description || "").toLowerCase();
+  const lName = (hackathon.name || "").toLowerCase();
+  
+  let modeLabel = "Online";
+  if (lDesc.includes("offline") || lName.includes("offline")) { 
+    modeLabel = "Offline"; 
+    modeBorder = "rgba(0,229,255,0.4)"; 
+    modeText = "var(--cyan-accent)"; 
+  } else if (lDesc.includes("hybrid") || lName.includes("hybrid")) { 
+    modeLabel = "Hybrid"; 
+    modeBorder = "rgba(255,215,0,0.4)"; 
+    modeText = "var(--gold)"; 
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3 }}
-      className="discover-card rounded-lg overflow-hidden group flex flex-col"
-      style={{ background: "var(--bg-card)" }}
+      className="flex flex-col relative"
+      style={{ 
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-glow)",
+        overflow: "hidden",
+        borderRadius: "4px",
+        transition: "border-color 200ms, box-shadow 200ms"
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--purple-primary)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "var(--glow-md)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-glow)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "none";
+      }}
     >
       {/* Banner */}
-      <div className="relative h-40 overflow-hidden" style={{ background: "linear-gradient(135deg, var(--bg-card), var(--bg-card-hover))" }}>
+      <div className="relative h-[140px] w-full" style={{ background: "linear-gradient(135deg, #1a0a3a 0%, #0a0520 100%)" }}>
         {hackathon.banner_url ? (
           <Image
             src={hackathon.banner_url}
             alt={hackathon.name}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Terminal className="w-12 h-12" style={{ color: "var(--purple-dim)" }} />
-          </div>
-        )}
-        {/* Platform badge */}
-        {hackathon.platform && (
-          <div className="absolute top-3 left-3">
-            <span
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${getPlatformColor(hackathon.platform)}`}
-            >
-              {hackathon.platform}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "14px", color: "var(--text-secondary)", opacity: 0.5 }}>
+              {hackathon.platform || "HACKATHON"}
             </span>
           </div>
         )}
-        {/* Deadline badge */}
-        <div className="absolute top-3 right-3">
-          <DeadlineBadge date={hackathon.registration_deadline} />
+        
+        {/* Top Badges overlay */}
+        <div className="absolute top-3 inset-x-3 flex justify-between items-start pointer-events-none">
+          {hackathon.platform && (
+            <span
+              style={{
+                background: hackathon.platform.toLowerCase() === 'devfolio' ? 'rgba(61,90,254,0.15)' : 
+                            hackathon.platform.toLowerCase() === 'unstop' ? 'rgba(255,107,53,0.15)' : 
+                            hackathon.platform.toLowerCase() === 'devpost' ? 'rgba(0,62,84,0.15)' : 'rgba(123,47,255,0.15)',
+                border: `1px solid ${hackathon.platform.toLowerCase() === 'devfolio' ? '#3D5AFE' : 
+                                    hackathon.platform.toLowerCase() === 'unstop' ? '#FF6B35' : 
+                                    hackathon.platform.toLowerCase() === 'devpost' ? '#003E54' : 'var(--border-glow)'}`,
+                color: hackathon.platform.toLowerCase() === 'devfolio' ? '#3D5AFE' : 
+                       hackathon.platform.toLowerCase() === 'unstop' ? '#FF6B35' : 
+                       hackathon.platform.toLowerCase() === 'devpost' ? '#00B4D8' : 'var(--cyan-accent)',
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "10px",
+                padding: "2px 8px",
+                borderRadius: "2px"
+              }}
+            >
+              {hackathon.platform}
+            </span>
+          )}
+          
+          {isValidDate(hackathon.registration_deadline) && (
+             <DeadlineBadge date={hackathon.registration_deadline} />
+          )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
-        <h3 className="text-base font-semibold text-[#E8EAF0] mb-1.5 line-clamp-2 leading-snug group-hover:text-purple-400 transition-colors">
+      <div className="p-4 flex flex-col flex-1">
+        {/* Badges Row */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {modeLabel !== "Online" && (
+            <span style={{
+              border: `1px solid ${modeBorder}`,
+              color: modeText,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "10px",
+              padding: "2px 8px",
+              borderRadius: "2px"
+            }}>
+              {modeLabel}
+            </span>
+          )}
+          {uniqueTags.map(t => {
+            const isLocation = CITY_GROUPS.some(g => g.cities.some(c => c.toLowerCase() === t.toLowerCase())) || 
+                               t.toLowerCase().includes("india") || t.toLowerCase().includes("usa");
+            if (isLocation) {
+              return (
+                <span key={t} className="flex items-center gap-1" style={{ background: "rgba(123,47,255,0.1)", border: "1px solid var(--border-glow)", color: "var(--purple-primary)", fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", padding: "2px 8px", borderRadius: "2px" }}>
+                  <MapPin className="w-3 h-3" /> {t}
+                </span>
+              );
+            }
+            return (
+              <span key={t} style={{ border: "1px solid rgba(123,47,255,0.2)", color: "var(--text-secondary)", fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", padding: "2px 8px", borderRadius: "2px" }}>
+                {t}
+              </span>
+            );
+          })}
+        </div>
+        
+        <h3 className="text-white mb-1.5 line-clamp-2" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "14px", fontWeight: 500 }}>
           {hackathon.name}
         </h3>
 
         {hackathon.description && (
-          <p className="text-xs mb-3 line-clamp-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+          <p className="line-clamp-2 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "var(--text-secondary)", margin: "6px 0 12px" }}>
             {hackathon.description}
           </p>
         )}
@@ -216,65 +286,79 @@ function HackathonCard({
         {/* Prize */}
         {hackathon.prize_pool && (
           <div className="flex items-center gap-1.5 mb-3">
-            <Trophy className="w-3.5 h-3.5 text-[#EF9F27]" />
-            <span className="text-sm font-semibold text-[#EF9F27]">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="var(--gold)" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              className="w-3.5 h-3.5"
+            >
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+              <path d="M4 22h16"></path>
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+            </svg>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", color: "var(--gold)" }}>
               {hackathon.prize_pool}
             </span>
           </div>
         )}
 
-        {/* Tags */}
-        {hackathon.tags && hackathon.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {hackathon.tags.slice(0, 3).map((tag, i) => (
-              <span
-                key={i}
-                className="px-2 py-0.5 rounded-md text-[10px] font-medium"
-                style={{ background: "rgba(123,47,255,0.1)", color: "var(--text-secondary)", border: "1px solid var(--border-glow)" }}
-              >
-                {tag}
-              </span>
-            ))}
-            {hackathon.tags.length > 3 && (
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-medium" style={{ background: "rgba(123,47,255,0.1)", color: "var(--text-secondary)" }}>
-                +{hackathon.tags.length - 3}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Dates */}
-        <div className="text-xs mb-4 mt-auto" style={{ color: "var(--text-secondary)" }}>
-          {hackathon.registration_deadline && (
-            <span>Deadline: {formatDate(hackathon.registration_deadline)}</span>
-          )}
-          {!hackathon.registration_deadline && hackathon.end_date && (
-            <span>Ends: {formatDate(hackathon.end_date)}</span>
-          )}
-        </div>
-
         {/* Action buttons */}
-        <div className="flex gap-2">
-          <Button
+        <div className="mt-auto pt-3 flex items-center gap-2">
+          <button
             onClick={() => onTrack(hackathon)}
             disabled={isTracking}
-            className="btn-purple flex-1 gap-1.5 font-semibold text-xs h-9 mono"
+            className="flex-1 flex items-center justify-center gap-2 h-9 transition-colors relative overflow-hidden focus:outline-none"
+            style={{
+              background: isTracking ? "rgba(123,47,255,0.1)" : "var(--purple-primary)",
+              border: "1px solid var(--purple-primary)",
+              color: isTracking ? "var(--text-secondary)" : "white",
+              opacity: isTracking ? 0.7 : 1,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "12px",
+              borderRadius: "4px",
+              cursor: isTracking ? "not-allowed" : "pointer",
+            }}
+            onMouseEnter={(e) => {
+              if (!isTracking) (e.currentTarget as HTMLElement).style.boxShadow = "var(--glow-sm)";
+            }}
+            onMouseLeave={(e) => {
+               if (!isTracking) (e.currentTarget as HTMLElement).style.boxShadow = "none";
+            }}
           >
-            <Bookmark className="w-3.5 h-3.5" />
+            <Bookmark className="w-3.5 h-3.5" style={{ fill: isTracking ? "rgba(123,47,255,0.5)" : "none" }} />
             {isTracking ? "Tracking..." : "Track This"}
-          </Button>
+          </button>
           <a
             href={hackathon.source_url}
             target="_blank"
             rel="noopener noreferrer"
+            className="flex items-center justify-center h-9 px-3 transition-colors focus:outline-none"
+            title="View hackathon"
+            style={{
+              background: "transparent",
+              border: "1px solid var(--border-glow)",
+              color: "var(--text-secondary)",
+              borderRadius: "4px",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(123,47,255,0.1)";
+              (e.currentTarget as HTMLElement).style.borderColor = "var(--purple-primary)";
+              (e.currentTarget as HTMLElement).style.color = "white";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-glow)";
+              (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+            }}
           >
-            <Button
-              variant="outline"
-              className="h-9 px-3"
-              style={{ borderColor: "var(--border-glow)", color: "var(--text-secondary)" }}
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
+            <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>
@@ -478,7 +562,26 @@ function DiscoverContent() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg-void)" }}>
+    <div className="min-h-screen relative flex flex-col" style={{ backgroundColor: "var(--bg-void)" }}>
+      {/* Background gradients */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 20% 30%, rgba(80,0,160,0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 60% 40% at 75% 60%, rgba(0,60,120,0.08) 0%, transparent 60%),
+            var(--bg-void)
+          `
+        }}
+      />
+
+      {/* Grid overlay for scanning effect */}
+      <div className="fixed inset-0 pointer-events-none z-[1]" style={{
+        backgroundImage: 'linear-gradient(rgba(123, 47, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(123, 47, 255, 0.03) 1px, transparent 1px)',
+        backgroundSize: '30px 30px'
+      }} />
+
+      <div className="relative z-10 flex flex-col min-h-screen">
       {/* Nav */}
       <nav className="sticky top-0 z-50 backdrop-blur-xl border-b" style={{ background: "rgba(4,4,15,0.85)", borderColor: "rgba(123,47,255,0.2)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -489,14 +592,14 @@ function DiscoverContent() {
             <Link href="/login">
               <Button
                 variant="outline"
-                className="mono text-xs"
-                style={{ borderColor: "rgba(123,47,255,0.3)", color: "#E8EAF0" }}
+                className="mono text-xs hover:text-white"
+                style={{ borderColor: "var(--border-glow)", color: "var(--text-secondary)", background: "transparent" }}
               >
                 Sign In
               </Button>
             </Link>
             <Link href="/login">
-              <Button className="btn-purple mono text-xs font-semibold gap-1.5">
+              <Button style={{ background: "var(--purple-primary)", color: "white" }} className="mono text-xs font-semibold gap-1.5 hover:opacity-90">
                 Get Started <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
@@ -506,7 +609,7 @@ function DiscoverContent() {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-md transition-colors"
-              style={{ color: "#E8EAF0" }}
+              style={{ color: "white" }}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -522,16 +625,16 @@ function DiscoverContent() {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="sm:hidden overflow-hidden border-b backdrop-blur-xl absolute top-[73px] left-0 right-0 z-40"
-            style={{ background: "rgba(4,4,15,0.95)", borderColor: "rgba(123,47,255,0.15)" }}
+            style={{ background: "rgba(4,4,15,0.95)", borderColor: "var(--border-glow)" }}
           >
             <div className="px-4 py-4 flex flex-col gap-3 shadow-2xl">
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full justify-start" style={{ borderColor: "var(--border-glow)", color: "#E8EAF0" }}>
+                <Button variant="outline" className="w-full justify-start mono" style={{ borderColor: "var(--border-glow)", color: "var(--text-secondary)", background: "transparent" }}>
                   Sign In
                 </Button>
               </Link>
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="btn-purple w-full justify-start mono text-xs font-semibold gap-1.5">
+                <Button className="w-full justify-start mono text-xs font-semibold gap-1.5 hover:opacity-90" style={{ background: "var(--purple-primary)", color: "white" }}>
                   Get Started <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
@@ -539,52 +642,55 @@ function DiscoverContent() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Hero */}
-      <div className="relative overflow-hidden">
-        <div className="hero-nebula" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="dash-terminal justify-center mb-4">
-              <span>$ hacktrack discover</span>
-              <span className="cursor"></span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded card-glow text-purple-300 text-sm font-medium mb-5">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="text-xs mono">Live Hackathons</span>
-            </div>
-            <h1
-              className="pixel text-lg sm:text-xl lg:text-2xl text-[#E8EAF0] mb-4"
-              style={{ textShadow: "0 0 30px rgba(123,47,255,0.4)", lineHeight: "1.6" }}
-            >
-              Discover{" "}
-              <span style={{ color: "var(--cyan-accent)" }}>Open Hackathons</span>
+      {/* Hero Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full" style={{ padding: "40px 40px 0" }}>
+        <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center gap-4 mb-3">
+            <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "20px", color: "white" }}>
+              DISCOVER
             </h1>
-            <p className="text-sm mono max-w-xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-              Browse hackathons from Devfolio, DevPost, Unstop & more.
-              Track the ones you love.
-            </p>
-          </motion.div>
-        </div>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(123,47,255,0.15)", border: "1px solid var(--border-glow)", borderRadius: "4px", color: "var(--cyan-accent)", fontFamily: "'JetBrains Mono', monospace" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan-accent)] animate-pulse" />
+              LIVE
+            </span>
+          </div>
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
+            Live hackathons from Devfolio · Unstop · Devpost — updated every 6 hours
+          </p>
+        </motion.div>
       </div>
 
       {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 relative z-10 w-full">
         <div className="flex flex-col gap-3">
           {/* Row 1: Search + Near Me */}
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            <div className="relative w-full sm:flex-1 sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--purple-dim)" }} />
+            <div className="relative w-full sm:flex-1 sm:max-w-md group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors" style={{ color: "var(--text-secondary)" }} />
               <input
                 type="text"
                 placeholder="Search hackathons..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-[#E8EAF0] text-sm placeholder-[#454D66] input-terminal transition-all mono"
+                className="w-full pl-10 pr-4 rounded text-sm transition-all focus:outline-none placeholder:text-[#8888bb]"
+                style={{
+                  height: "40px",
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-glow)",
+                  color: "white",
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "12px"
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--purple-primary)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border-glow)"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--purple-primary)"; }}
+                onMouseLeave={(e) => { 
+                  if (document.activeElement !== e.currentTarget) e.currentTarget.style.borderColor = "var(--border-glow)"; 
+                }}
               />
             </div>
 
@@ -592,11 +698,27 @@ function DiscoverContent() {
             <button
               onClick={detectLocation}
               disabled={detectingLocation}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs mono font-medium transition-all whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-2 rounded transition-all whitespace-nowrap focus:outline-none"
               style={{
-                background: detectingLocation ? "rgba(123,47,255,0.15)" : "rgba(0,229,255,0.1)",
-                border: "1px solid " + (detectingLocation ? "rgba(123,47,255,0.3)" : "rgba(0,229,255,0.3)"),
-                color: detectingLocation ? "var(--purple-primary)" : "var(--cyan-accent)",
+                height: "40px",
+                padding: "0 16px",
+                background: detectingLocation ? "rgba(123,47,255,0.15)" : "var(--bg-card)",
+                border: "1px solid " + (detectingLocation ? "var(--purple-primary)" : "var(--border-glow)"),
+                color: detectingLocation ? "var(--purple-primary)" : "white",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "12px",
+              }}
+              onMouseEnter={(e) => {
+                if (!detectingLocation) {
+                  e.currentTarget.style.borderColor = "var(--purple-primary)";
+                  e.currentTarget.style.color = "var(--cyan-accent)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!detectingLocation) {
+                  e.currentTarget.style.borderColor = "var(--border-glow)";
+                  e.currentTarget.style.color = "white";
+                }
               }}
             >
               {detectingLocation ? (
@@ -606,8 +728,8 @@ function DiscoverContent() {
                 </>
               ) : (
                 <>
-                  <MapPin className="w-3.5 h-3.5" />
-                  📍 Near me
+                  <MapPin className="w-3.5 h-3.5" style={{ color: "var(--cyan-accent)" }} />
+                  Near me
                 </>
               )}
             </button>
@@ -622,16 +744,25 @@ function DiscoverContent() {
                     setPage(1);
                     syncUrl({ city: e.target.value, page: 1 });
                   }}
-                  className="w-full sm:w-[180px] h-10 px-3 rounded-lg text-sm mono transition-all appearance-none"
+                  className="w-full sm:w-[180px] px-3 rounded transition-all appearance-none cursor-pointer focus:outline-none"
                   style={{
+                    height: "40px",
                     background: "var(--bg-card)",
                     border: "1px solid var(--border-glow)",
-                    color: city ? "#E8EAF0" : "var(--text-secondary)",
+                    color: city ? "white" : "var(--text-secondary)",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "12px"
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--purple-primary)"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border-glow)"; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--purple-primary)"; }}
+                  onMouseLeave={(e) => { 
+                    if (document.activeElement !== e.currentTarget) e.currentTarget.style.borderColor = "var(--border-glow)"; 
                   }}
                 >
                   <option value="">All Cities</option>
                   {CITY_GROUPS.map((group) => (
-                    <optgroup key={group.label} label={group.label}>
+                    <optgroup key={group.label} label={group.label} style={{ background: "var(--bg-card)", color: "white" }}>
                       {group.cities.map((c) => (
                         <option key={c} value={c}>
                           {c}
@@ -653,17 +784,24 @@ function DiscoverContent() {
                   }}
                 >
                   <SelectTrigger
-                    className="w-full sm:w-[160px] text-sm h-10"
-                    style={{ background: "var(--bg-card)", borderColor: "var(--border-glow)", color: "#E8EAF0" }}
+                     className="w-full sm:w-[160px] rounded focus:ring-0 focus:ring-offset-0 transition-all border outline-none"
+                    style={{ 
+                      height: "40px", 
+                      background: "var(--bg-card)", 
+                      borderColor: "var(--border-glow)", 
+                      color: "white", 
+                      fontFamily: "'JetBrains Mono', monospace", 
+                      fontSize: "12px" 
+                    }}
                   >
                     <div className="flex items-center gap-2">
-                      <Filter className="w-4 h-4 hidden sm:block" style={{ color: "var(--purple-dim)" }} />
+                       <Filter className="w-3.5 h-3.5 hidden sm:block" style={{ color: "var(--text-secondary)" }} />
                       <SelectValue />
                     </div>
                   </SelectTrigger>
-                  <SelectContent style={{ background: "var(--bg-card)", borderColor: "var(--border-glow)" }}>
+                  <SelectContent style={{ background: "var(--bg-card)", borderColor: "var(--purple-primary)" }}>
                     {PLATFORM_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value} className="text-[#E8EAF0] text-sm">
+                      <SelectItem key={opt.value} value={opt.value} className="focus:bg-[#0f0830]" style={{ color: "white", fontFamily: "'JetBrains Mono', monospace", fontSize: "12px" }}>
                         {opt.label}
                       </SelectItem>
                     ))}
@@ -682,14 +820,21 @@ function DiscoverContent() {
                   }}
                 >
                   <SelectTrigger
-                    className="w-full sm:w-[180px] text-sm h-10"
-                    style={{ background: "var(--bg-card)", borderColor: "var(--border-glow)", color: "#E8EAF0" }}
+                    className="w-full sm:w-[180px] rounded focus:ring-0 focus:ring-offset-0 transition-all border outline-none"
+                    style={{ 
+                      height: "40px", 
+                      background: "var(--bg-card)", 
+                      borderColor: "var(--border-glow)", 
+                      color: "white", 
+                      fontFamily: "'JetBrains Mono', monospace", 
+                      fontSize: "12px" 
+                    }}
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent style={{ background: "var(--bg-card)", borderColor: "var(--border-glow)" }}>
+                  <SelectContent style={{ background: "var(--bg-card)", borderColor: "var(--purple-primary)" }}>
                     {SORT_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value} className="text-[#E8EAF0] text-sm">
+                      <SelectItem key={opt.value} value={opt.value} className="focus:bg-[#0f0830]" style={{ color: "white", fontFamily: "'JetBrains Mono', monospace", fontSize: "12px" }}>
                         {opt.label}
                       </SelectItem>
                     ))}
@@ -702,11 +847,11 @@ function DiscoverContent() {
           {/* Active filter pills */}
           {(city || (platform !== "all")) && (
             <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-xs mono" style={{ color: "var(--text-secondary)" }}>Active filters:</span>
+              <span style={{ color: "var(--text-secondary)", fontFamily: "'JetBrains Mono', monospace", fontSize: "10px" }}>Active filters:</span>
               {city && (
                 <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs mono"
-                  style={{ background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.3)", color: "var(--cyan-accent)" }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm"
+                  style={{ background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.3)", color: "var(--cyan-accent)", fontFamily: "'JetBrains Mono', monospace", fontSize: "10px" }}
                 >
                   <MapPin className="w-3 h-3" />
                   {city}
@@ -716,7 +861,7 @@ function DiscoverContent() {
                       setPage(1);
                       syncUrl({ city: "", page: 1 });
                     }}
-                    className="ml-1 hover:text-white transition-colors"
+                    className="ml-1 hover:text-white transition-colors cursor-pointer"
                   >
                     ✕
                   </button>
@@ -724,8 +869,8 @@ function DiscoverContent() {
               )}
               {platform !== "all" && (
                 <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs mono"
-                  style={{ background: "rgba(123,47,255,0.1)", border: "1px solid rgba(123,47,255,0.3)", color: "var(--purple-primary)" }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm"
+                  style={{ background: "rgba(123,47,255,0.1)", border: "1px solid var(--border-glow)", color: "var(--purple-primary)", fontFamily: "'JetBrains Mono', monospace", fontSize: "10px" }}
                 >
                   {platform}
                   <button
@@ -734,7 +879,7 @@ function DiscoverContent() {
                       setPage(1);
                       syncUrl({ platform: "all", page: 1 });
                     }}
-                    className="ml-1 hover:text-white transition-colors"
+                    className="ml-1 hover:text-white transition-colors cursor-pointer"
                   >
                     ✕
                   </button>
@@ -745,7 +890,7 @@ function DiscoverContent() {
 
           {/* Count */}
           {!loading && (
-            <span className="text-xs ml-0 sm:ml-auto text-right hidden sm:block" style={{ color: "var(--text-secondary)" }}>
+            <span className="ml-0 sm:ml-auto text-right hidden sm:block" style={{ color: "var(--text-secondary)", fontFamily: "'JetBrains Mono', monospace", fontSize: "10px" }}>
               {pagination.total} hackathon{pagination.total !== 1 ? "s" : ""} found
               {city && ` near "${city}"`}
             </span>
@@ -754,7 +899,7 @@ function DiscoverContent() {
       </div>
 
       {/* Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 relative z-10 w-full flex-1">
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -869,7 +1014,7 @@ function DiscoverContent() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t py-8" style={{ borderColor: "rgba(123,47,255,0.15)" }}>
+      <footer className="border-t py-8 mt-auto" style={{ borderColor: "rgba(123,47,255,0.15)" }}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm" style={{ color: "var(--text-secondary)" }}>
           <div className="flex items-center gap-2">
             <Logo size="sm" showText={false} />
@@ -878,6 +1023,7 @@ function DiscoverContent() {
           <p className="mono text-xs">Built with ❤️ for hackers</p>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

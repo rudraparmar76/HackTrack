@@ -1581,8 +1581,15 @@ app.get("/api/public/hackathons", async (req, res) => {
     const { data, error, count } = await query;
     if (error) return res.status(500).json({ error: error.message });
 
+    const seenUrls = new Set();
+    const deduped = (data || []).filter((h: any) => {
+      if (!h.source_url || seenUrls.has(h.source_url)) return false;
+      seenUrls.add(h.source_url);
+      return true;
+    });
+
     res.json({
-      hackathons: data || [],
+      hackathons: deduped,
       pagination: {
         page,
         limit,
@@ -1623,7 +1630,7 @@ app.all("/api/cron/scrape-hackathons", async (req, res) => {
         banner_url: h.banner_url || null,
         description: h.description || null,
         prize_pool: h.prize_pool || null,
-        tags: h.tags || [],
+        tags: [...new Set(h.tags || [])].filter(Boolean),
         source_url: h.source_url,
         status: h.status || "open",
         is_public: true,
