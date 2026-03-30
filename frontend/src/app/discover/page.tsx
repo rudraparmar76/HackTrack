@@ -148,7 +148,7 @@ function HackathonCard({
   onTrack: (h: PublicHackathon) => void;
   isTracking: boolean;
 }) {
-  const uniqueTags = [...new Set(hackathon.tags || [])].slice(0, 3);
+  const uniqueTags = Array.from(new Set(hackathon.tags || [])).slice(0, 3);
   const isValidDate = (d: string | null) => d && !isNaN(new Date(d).getTime());
 
   // Determine mode badge styles
