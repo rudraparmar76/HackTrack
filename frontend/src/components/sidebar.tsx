@@ -4,38 +4,57 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Logo from "@/components/Logo";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  LayoutDashboard,
+  Compass,
+  LayoutGrid,
+  PlusCircle,
+  List,
   Bell,
-  Clock,
+  User as UserIcon,
+  Users,
+  BellDot,
   Settings,
+  HelpCircle,
   LogOut,
-  Plus,
-  Terminal,
-  Sparkles,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/discover", label: "Discover", icon: Sparkles },
-  { href: "/reminders", label: "Reminders", icon: Clock },
-  { href: "/notifications", label: "Alerts", icon: Bell },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 interface SidebarProps {
   isOpen?: boolean;
   setIsOpen?: (val: boolean) => void;
 }
+
+const navSections = [
+  {
+    label: "DISCOVER",
+    items: [{ href: "/discover", label: "Discover", icon: Compass }],
+  },
+  {
+    label: "WORKSPACE",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+      { href: "/hackathon/new", label: "Track New", icon: PlusCircle },
+      { href: "/my-hackathons", label: "My Hackathons", icon: List },
+      { href: "/reminders", label: "Reminders", icon: Bell },
+    ],
+  },
+  {
+    label: "SOCIAL",
+    items: [
+      { href: "/profile", label: "My Profile", icon: UserIcon },
+      { href: "/team-finder", label: "Team Finder", icon: Users },
+      { href: "/notifications", label: "Notifications", icon: BellDot },
+    ],
+  },
+  {
+    label: "SETTINGS",
+    items: [
+      { href: "/settings", label: "Settings", icon: Settings },
+      { href: "/help", label: "Help", icon: HelpCircle },
+    ],
+  },
+];
 
 export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const router = useRouter();
@@ -43,6 +62,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -57,6 +77,15 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           .eq("user_id", user.id)
           .eq("read", false);
         setUnreadCount(count || 0);
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+        if (profile) {
+          setUsername(profile.username);
+        }
       }
     };
     getUser();
@@ -74,114 +103,204 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     router.push("/login");
   };
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/") && href !== "/";
+
+  // When Profile path is unique, like /u/[username], we just handle the base /profile map for now.
+  // We'll map "My Profile" to their user link if needed later.
 
   return (
-    <aside 
-      className={`sidebar-dark fixed left-0 top-0 h-screen w-[220px] border-r flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
-    >
-      {/* Logo */}
-      <Link
-        href={user ? "/dashboard" : "/"}
-        className="flex items-center gap-2.5 px-5 py-5 group"
+    <>
+      <aside
+        className={`fixed left-0 top-0 h-screen w-[240px] flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          background: "rgba(6, 3, 18, 0.98)",
+          borderRight: "1px solid rgba(123,47,255,0.2)",
+          padding: "20px 0",
+          overflowY: "auto",
+        }}
       >
-        <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/15 transition-colors">
-          <Terminal className="w-4 h-4 text-purple-400" />
+        <style jsx>{`
+          aside::-webkit-scrollbar {
+            width: 4px;
+          }
+          aside::-webkit-scrollbar-track {
+            background: rgba(6, 3, 18, 0.98);
+          }
+          aside::-webkit-scrollbar-thumb {
+            background: rgba(123, 47, 255, 0.4);
+            border-radius: 4px;
+          }
+        `}</style>
+        {/* Top Section */}
+        <div style={{ padding: "0 20px 20px", borderBottom: "1px solid rgba(123,47,255,0.15)", marginBottom: "24px" }}>
+          <Logo size="sm" showText={true} />
         </div>
-        <span className="pixel text-[10px] text-[#E8EAF0] tracking-wide">
-          HACK<span className="text-purple-400">TRACK</span>
-        </span>
-      </Link>
 
-      {/* Add Hackathon CTA */}
-      <div className="px-4 mb-4 mt-4 md:mt-0">
-        <Link href="/hackathon/new" onClick={() => setIsOpen?.(false)}>
-          <button className="btn-purple w-full flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-semibold">
-            <Plus className="w-4 h-4" />
-            Add Hackathon
-          </button>
-        </Link>
-      </div>
-
-      {/* Nav Links */}
-      <nav className="flex-1 px-3 space-y-1">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setIsOpen?.(false)}
-              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                active
-                  ? "sidebar-link-active"
-                  : "text-[#7A8099] hover:text-[#E8EAF0] hover:bg-white/[0.02]"
-              }`}
-            >
-              {/* Active left border */}
-              {active && (
-                <div className="sidebar-active-bar absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full" />
-              )}
-              <item.icon className="w-[18px] h-[18px]" />
-              <span>{item.label}</span>
-              {/* Notification badge */}
-              {item.href === "/notifications" && unreadCount > 0 && (
-                <span className="badge-purple ml-auto w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* User Profile */}
-      {user && (
-        <div className="px-3 pb-4 pt-3 border-t divider-purple">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/[0.03] transition-colors">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={user.user_metadata?.avatar_url} />
-                  <AvatarFallback className="bg-purple-500/10 text-purple-400 text-xs font-bold">
-                    {(
-                      user.user_metadata?.name ||
-                      user.email ||
-                      "U"
-                    )
-                      .charAt(0)
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-medium text-[#E8EAF0] truncate">
-                    {user.user_metadata?.name || "User"}
-                  </p>
-                  <p className="text-[11px] text-[#7A8099] truncate">
-                    {user.email}
-                  </p>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-56">
-              <DropdownMenuItem onClick={() => router.push("/settings")}>
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleSignOut}
-                className="text-red-400"
+        {/* Nav Sections */}
+        <div className="flex-1 flex flex-col gap-6">
+          {navSections.map((section) => (
+            <div key={section.label}>
+              <div
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "9px",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "rgba(123,47,255,0.6)",
+                  padding: "0 20px 8px",
+                }}
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {section.label}
+              </div>
+              <div className="flex flex-col">
+                {section.items.map((item) => {
+                  let resolvedHref = item.href;
+                  if (item.label === "My Profile" && username) {
+                    resolvedHref = `/u/${username}`;
+                  }
+                  
+                  const active = isActive(resolvedHref);
+                  return (
+                    <Link
+                      href={resolvedHref}
+                      key={item.label}
+                      onClick={() => setIsOpen?.(false)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: active ? "10px 20px 10px 18px" : "10px 20px",
+                        borderRadius: "4px",
+                        margin: "1px 8px",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: "12px",
+                        color: active ? "white" : "var(--text-secondary)",
+                        transition: "all 150ms",
+                        background: active ? "rgba(123,47,255,0.15)" : "transparent",
+                        borderLeft: active ? "2px solid var(--purple-primary)" : "none",
+                        boxShadow: active ? "inset 0 0 20px rgba(123,47,255,0.05)" : "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!active) {
+                          (e.currentTarget as HTMLElement).style.background = "rgba(123,47,255,0.1)";
+                          (e.currentTarget as HTMLElement).style.color = "white";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!active) {
+                          (e.currentTarget as HTMLElement).style.background = "transparent";
+                          (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                        }
+                      }}
+                    >
+                      <item.icon style={{ width: "16px", height: "16px", color: "inherit" }} />
+                      <span className="flex-1">{item.label}</span>
+                      {item.label === "Notifications" && unreadCount > 0 && (
+                        <span
+                          style={{
+                            minWidth: "18px",
+                            height: "18px",
+                            background: "var(--purple-primary)",
+                            borderRadius: "9px",
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: "10px",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginLeft: "auto",
+                            padding: "0 4px",
+                          }}
+                        >
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-    </aside>
+
+        {/* Bottom Section */}
+        {user && (
+          <div className="mt-auto pt-4 px-4" style={{ borderTop: "1px solid rgba(123,47,255,0.15)" }}>
+            <div className="flex items-center gap-3 px-2 mb-3">
+              <div
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  background: "rgba(123,47,255,0.2)",
+                  border: "1px solid var(--border-glow)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "12px",
+                  color: "var(--purple-primary)",
+                  flexShrink: 0
+                }}
+              >
+                {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <p
+                  className="truncate"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "12px",
+                    color: "white",
+                    lineHeight: "1.2",
+                    marginBottom: "2px"
+                  }}
+                >
+                  {user.user_metadata?.name || "Hacker"}
+                </p>
+                <p
+                  className="truncate"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "10px",
+                    color: "var(--text-secondary)",
+                    lineHeight: "1"
+                  }}
+                >
+                  {user.email}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center justify-center gap-2 transition-colors"
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(255,50,50,0.2)",
+                color: "rgba(255,100,100,0.7)",
+                borderRadius: "4px",
+                padding: "8px",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "11px",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,50,50,0.5)";
+                (e.currentTarget as HTMLElement).style.color = "#ff6666";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,50,50,0.2)";
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,100,100,0.7)";
+              }}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
+            </button>
+          </div>
+        )}
+      </aside>
+    </>
   );
 }

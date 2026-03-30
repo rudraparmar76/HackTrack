@@ -34,6 +34,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { getPlatformColor, daysUntil, formatDate } from "@/lib/utils";
 import Logo from "@/components/Logo";
 import { useToast } from "@/hooks/use-toast";
+import { Sidebar } from "@/components/sidebar";
 
 type PublicHackathon = {
   id: string;
@@ -386,6 +387,10 @@ function DiscoverContent() {
   const [trackingId, setTrackingId] = useState<string | null>(null);
   const [detectingLocation, setDetectingLocation] = useState(false);
 
+  const [authUser, setAuthUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // Initialize from URL params
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [platform, setPlatform] = useState(searchParams.get("platform") || "all");
@@ -397,6 +402,13 @@ function DiscoverContent() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setAuthUser(data.user);
+      setAuthChecked(true);
+    });
+  }, [supabase.auth]);
 
   /* ──── Sync state → URL params ──── */
   const syncUrl = useCallback(
@@ -561,108 +573,16 @@ function DiscoverContent() {
     }
   };
 
-  return (
-    <div className="min-h-screen relative flex flex-col" style={{ backgroundColor: "var(--bg-void)" }}>
-      {/* Background gradients */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          background: `
-            radial-gradient(ellipse 80% 50% at 20% 30%, rgba(80,0,160,0.12) 0%, transparent 70%),
-            radial-gradient(ellipse 60% 40% at 75% 60%, rgba(0,60,120,0.08) 0%, transparent 60%),
-            var(--bg-void)
-          `
-        }}
-      />
-
-      {/* Grid overlay for scanning effect */}
-      <div className="fixed inset-0 pointer-events-none z-[1]" style={{
-        backgroundImage: 'linear-gradient(rgba(123, 47, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(123, 47, 255, 0.03) 1px, transparent 1px)',
-        backgroundSize: '30px 30px'
-      }} />
-
-      <div className="relative z-10 flex flex-col min-h-screen">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl border-b" style={{ background: "rgba(4,4,15,0.85)", borderColor: "rgba(123,47,255,0.2)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Logo size="md" showText />
-          </Link>
-          <div className="hidden sm:flex items-center gap-3">
-            <Link href="/login">
-              <Button
-                variant="outline"
-                className="mono text-xs hover:text-white"
-                style={{ borderColor: "var(--border-glow)", color: "var(--text-secondary)", background: "transparent" }}
-              >
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button style={{ background: "var(--purple-primary)", color: "white" }} className="mono text-xs font-semibold gap-1.5 hover:opacity-90">
-                Get Started <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="sm:hidden flex items-center">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-md transition-colors"
-              style={{ color: "white" }}
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="sm:hidden overflow-hidden border-b backdrop-blur-xl absolute top-[73px] left-0 right-0 z-40"
-            style={{ background: "rgba(4,4,15,0.95)", borderColor: "var(--border-glow)" }}
-          >
-            <div className="px-4 py-4 flex flex-col gap-3 shadow-2xl">
-              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full justify-start mono" style={{ borderColor: "var(--border-glow)", color: "var(--text-secondary)", background: "transparent" }}>
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="w-full justify-start mono text-xs font-semibold gap-1.5 hover:opacity-90" style={{ background: "var(--purple-primary)", color: "white" }}>
-                  Get Started <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {/* Hero Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full" style={{ padding: "40px 40px 0" }}>
-        <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.5 }}
-        >
-          <div className="flex items-center gap-4 mb-3">
-            <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "20px", color: "white" }}>
-              DISCOVER
-            </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(123,47,255,0.15)", border: "1px solid var(--border-glow)", borderRadius: "4px", color: "var(--cyan-accent)", fontFamily: "'JetBrains Mono', monospace" }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan-accent)] animate-pulse" />
-              LIVE
-            </span>
-          </div>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
-            Live hackathons from Devfolio · Unstop · Devpost — updated every 6 hours
-          </p>
-        </motion.div>
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-void)" }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--purple-primary)" }} />
       </div>
+    );
+  }
+
+  const PageContent = (
+    <>
 
       {/* Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 relative z-10 w-full">
@@ -1013,16 +933,162 @@ function DiscoverContent() {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t py-8 mt-auto" style={{ borderColor: "rgba(123,47,255,0.15)" }}>
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm" style={{ color: "var(--text-secondary)" }}>
-          <div className="flex items-center gap-2">
-            <Logo size="sm" showText={false} />
-            <span className="pixel text-[8px]">HACKTRACK</span>
+    </>
+  );
+
+  if (authUser) {
+    return (
+      <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg-void)" }}>
+        {/* Mobile Topbar */}
+        <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b z-40 flex items-center justify-between px-4" style={{ background: "rgba(6, 3, 18, 0.98)", borderColor: "rgba(123,47,255,0.15)" }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+              <Terminal className="w-4 h-4 text-purple-400" />
+            </div>
+            <span className="pixel text-[10px] text-[#E8EAF0] tracking-wide">
+              HACK<span className="text-purple-400">TRACK</span>
+            </span>
           </div>
-          <p className="mono text-xs">Built with ❤️ for hackers</p>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 -mr-2 text-[#E8EAF0] hover:text-purple-400 transition-colors">
+            <Menu className="w-6 h-6" />
+          </button>
         </div>
-      </footer>
+
+        {/* Mobile Backdrop */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-[#04040f]/80 backdrop-blur-sm z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+        
+        <main className="flex-1 overflow-y-auto pt-16 md:pt-0 relative">
+          {/* Background gradients */}
+          <div className="fixed inset-0 pointer-events-none z-0" style={{ background: `radial-gradient(ellipse 80% 50% at 20% 30%, rgba(80,0,160,0.12) 0%, transparent 70%), radial-gradient(ellipse 60% 40% at 75% 60%, rgba(0,60,120,0.08) 0%, transparent 60%), transparent` }} />
+          <div className="fixed inset-0 pointer-events-none z-[1]" style={{ backgroundImage: "linear-gradient(rgba(123, 47, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(123, 47, 255, 0.03) 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
+
+          <div className="relative z-10 flex flex-col min-h-full">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-8 pb-4">
+              <h1 className="font-bold" style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "16px", color: "white" }}>DISCOVER</h1>
+            </div>
+            {PageContent}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen relative flex flex-col" style={{ backgroundColor: "var(--bg-void)" }}>
+      {/* Background gradients */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 20% 30%, rgba(80,0,160,0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 60% 40% at 75% 60%, rgba(0,60,120,0.08) 0%, transparent 60%),
+            var(--bg-void)
+          `
+        }}
+      />
+
+      {/* Grid overlay for scanning effect */}
+      <div className="fixed inset-0 pointer-events-none z-[1]" style={{
+        backgroundImage: "linear-gradient(rgba(123, 47, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(123, 47, 255, 0.03) 1px, transparent 1px)",
+        backgroundSize: "30px 30px"
+      }} />
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Nav */}
+        <nav className="sticky top-0 z-50 backdrop-blur-xl border-b" style={{ background: "rgba(4,4,15,0.85)", borderColor: "rgba(123,47,255,0.2)" }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2.5">
+              <Logo size="md" showText />
+            </Link>
+            <div className="hidden sm:flex items-center gap-3">
+              <Link href="/login">
+                <Button variant="outline" className="mono text-xs hover:text-white" style={{ borderColor: "var(--border-glow)", color: "var(--text-secondary)", background: "transparent" }}>
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button style={{ background: "var(--purple-primary)", color: "white" }} className="mono text-xs font-semibold gap-1.5 hover:opacity-90">
+                  Get Started <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="sm:hidden flex items-center">
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 rounded-md transition-colors" style={{ color: "white" }}>
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="sm:hidden overflow-hidden border-b backdrop-blur-xl absolute top-[73px] left-0 right-0 z-40"
+              style={{ background: "rgba(4,4,15,0.95)", borderColor: "var(--border-glow)" }}
+            >
+              <div className="px-4 py-4 flex flex-col gap-3 shadow-2xl">
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full justify-start mono" style={{ borderColor: "var(--border-glow)", color: "var(--text-secondary)", background: "transparent" }}>
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button className="w-full justify-start mono text-xs font-semibold gap-1.5 hover:opacity-90" style={{ background: "var(--purple-primary)", color: "white" }}>
+                    Get Started <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Hero Header */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full" style={{ padding: "40px 40px 0" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center gap-4 mb-3">
+              <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "20px", color: "white" }}>
+                DISCOVER
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(123,47,255,0.15)", border: "1px solid var(--border-glow)", borderRadius: "4px", color: "var(--cyan-accent)", fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan-accent)] animate-pulse" />
+                LIVE
+              </span>
+            </div>
+            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
+              Live hackathons from Devfolio · Unstop · Devpost — updated every 6 hours
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Filters and Content */}
+        {PageContent}
+
+        {/* Footer */}
+        <footer className="border-t py-8 mt-auto" style={{ borderColor: "rgba(123,47,255,0.15)" }}>
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm" style={{ color: "var(--text-secondary)" }}>
+            <div className="flex items-center gap-2">
+              <Logo size="sm" showText={false} />
+              <span className="pixel text-[8px]">HACKTRACK</span>
+            </div>
+            <p className="mono text-xs">Built with ❤️ for hackers</p>
+          </div>
+        </footer>
       </div>
     </div>
   );
