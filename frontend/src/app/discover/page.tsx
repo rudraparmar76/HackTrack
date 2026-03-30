@@ -971,7 +971,14 @@ function DiscoverContent() {
 
           <div className="relative z-10 flex flex-col min-h-full">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-8 pb-4">
-              <h1 className="font-bold" style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "16px", color: "white" }}>DISCOVER</h1>
+              <div className="dash-terminal mb-2">
+                <span>$ hacktrack search --live</span>
+                <span className="cursor"></span>
+              </div>
+              <h1 className="dash-heading" style={{ fontSize: "20px" }}>DISCOVER</h1>
+              <p className="text-sm text-[#8888bb] mt-2 mono mb-2">
+                Live hackathons from Devfolio · Unstop · Devpost — updated every 6 hours
+              </p>
             </div>
             {PageContent}
           </div>

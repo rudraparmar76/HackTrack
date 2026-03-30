@@ -35,7 +35,7 @@ const navSections = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
       { href: "/hackathon/new", label: "Track New", icon: PlusCircle },
-      { href: "/my-hackathons", label: "My Hackathons", icon: List },
+      // { href: "/my-hackathons", label: "My Hackathons", icon: List },
       { href: "/reminders", label: "Reminders", icon: Bell },
     ],
   },
@@ -43,7 +43,7 @@ const navSections = [
     label: "SOCIAL",
     items: [
       { href: "/profile", label: "My Profile", icon: UserIcon },
-      { href: "/team-finder", label: "Team Finder", icon: Users },
+      // { href: "/team-finder", label: "Team Finder", icon: Users },
       { href: "/notifications", label: "Notifications", icon: BellDot },
     ],
   },
