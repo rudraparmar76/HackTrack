@@ -111,6 +111,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   return (
     <>
+      <div className="hidden md:block w-[240px] shrink-0 h-screen" />
       <aside
         className={`fixed left-0 top-0 h-screen w-[240px] flex flex-col z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
