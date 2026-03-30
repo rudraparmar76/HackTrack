@@ -105,9 +105,11 @@ export default function HelpPage() {
             <p className="text-xs text-[#8888bb] mb-4">
               Found a glitch in the matrix? Let us know so we can patch it up.
             </p>
-            <Button variant="outline" className="w-full text-xs font-mono gap-2 hover:bg-red-500/10 hover:text-red-400 border-red-500/20 text-[#8888bb]">
-              Open GitHub Issue <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
+            <Link href="https://github.com/rudraparmar76/HackTrack/issues/new" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="w-full text-xs font-mono gap-2 hover:bg-red-500/10 hover:text-red-400 border-red-500/20 text-[#8888bb]">
+                Open GitHub Issue <ExternalLink className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </div>
