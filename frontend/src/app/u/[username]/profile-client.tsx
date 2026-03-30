@@ -69,13 +69,39 @@ export default function PublicProfileClient({
   const avatarColor = hashColor(profile.username);
 
   return (
-    <div className="min-h-screen bg-[#0F1117]">
-      {/* Gradient hero */}
+    <div className="min-h-screen" style={{ backgroundColor: "var(--bg-void)" }}>
+      {/* Trophy hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00FF87]/5 via-transparent to-[#00D4FF]/5" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#00FF87]/[0.03] rounded-full blur-[120px]" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 40% at 50% 30%, rgba(123,47,255,0.08) 0%, transparent 70%)" }} />
 
         <div className="relative max-w-3xl mx-auto px-6 pt-16 pb-10">
+          {/* Trophy Illustration */}
+          <div className="flex justify-center mb-6">
+            <svg width="96" height="96" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: "drop-shadow(0 0 12px rgba(255,215,0,0.3))" }}>
+              {/* Pedestal */}
+              <rect x="35" y="95" width="50" height="10" rx="2" fill="#4a1a99" stroke="#7b2fff" strokeWidth="1" />
+              <rect x="45" y="85" width="30" height="12" rx="1" fill="#4a1a99" stroke="#7b2fff" strokeWidth="1" />
+              {/* Trophy stem */}
+              <rect x="55" y="70" width="10" height="17" fill="#ffd700" opacity="0.8" />
+              {/* Trophy cup */}
+              <path d="M35 25 C35 25, 35 65, 60 70 C85 65, 85 25, 85 25 Z" fill="rgba(255,215,0,0.15)" stroke="#ffd700" strokeWidth="2" />
+              {/* Trophy handles */}
+              <path d="M35 32 C25 32, 20 45, 30 55 C32 56, 35 52, 35 52" stroke="#ffd700" strokeWidth="2" fill="none" />
+              <path d="M85 32 C95 32, 100 45, 90 55 C88 56, 85 52, 85 52" stroke="#ffd700" strokeWidth="2" fill="none" />
+              {/* Trophy rim */}
+              <line x1="33" y1="25" x2="87" y2="25" stroke="#ffd700" strokeWidth="2.5" strokeLinecap="round" />
+              {/* Star on trophy */}
+              <path d="M60 38 L63 47 L72 47 L65 52 L67 61 L60 56 L53 61 L55 52 L48 47 L57 47 Z" fill="#ffd700" opacity="0.9" />
+              {/* Sparkle stars */}
+              <circle cx="25" cy="20" r="2" fill="#ffd700" style={{ animation: "sparkle-float 2s ease-in-out 0s infinite" }} />
+              <circle cx="95" cy="15" r="1.5" fill="#ffd700" style={{ animation: "sparkle-float 2s ease-in-out 0.5s infinite" }} />
+              <circle cx="15" cy="50" r="1.5" fill="#7b2fff" style={{ animation: "sparkle-float 2.5s ease-in-out 1s infinite" }} />
+              <circle cx="105" cy="45" r="2" fill="#7b2fff" style={{ animation: "sparkle-float 2.5s ease-in-out 0.3s infinite" }} />
+              <circle cx="42" cy="10" r="1" fill="#ffd700" style={{ animation: "sparkle-float 1.8s ease-in-out 0.7s infinite" }} />
+              <circle cx="78" cy="8" r="1" fill="#ffd700" style={{ animation: "sparkle-float 1.8s ease-in-out 1.2s infinite" }} />
+            </svg>
+          </div>
+
           {/* Avatar + Info */}
           <div className="flex flex-col items-center text-center">
             <div
@@ -88,12 +114,12 @@ export default function PublicProfileClient({
             <h1 className="text-3xl font-bold text-[#E8EAF0] mb-1 tracking-tight">
               {profile.display_name || profile.username}
             </h1>
-            <p className="text-sm text-[#7A8099] font-mono mb-3">
+            <p className="text-sm font-mono mb-3" style={{ color: "var(--text-secondary)" }}>
               @{profile.username}
             </p>
 
             {profile.bio && (
-              <p className="text-sm text-[#A0A5B8] max-w-md leading-relaxed mb-5">
+              <p className="text-sm max-w-md leading-relaxed mb-5" style={{ color: "var(--text-secondary)" }}>
                 {profile.bio}
               </p>
             )}
@@ -105,9 +131,10 @@ export default function PublicProfileClient({
                   href={profile.github_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl bg-[#1A1F2E] border border-[#1E2330] flex items-center justify-center text-[#7A8099] hover:text-[#E8EAF0] hover:border-[#2A3045] transition-all duration-200 hover:scale-105"
+                  className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border-glow)", color: "var(--text-secondary)" }}
                 >
-                  <Github className="w-4.5 h-4.5" />
+                  <Github className="w-4 h-4" />
                 </a>
               )}
               {profile.linkedin_url && (
@@ -115,9 +142,10 @@ export default function PublicProfileClient({
                   href={profile.linkedin_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl bg-[#1A1F2E] border border-[#1E2330] flex items-center justify-center text-[#7A8099] hover:text-[#0A66C2] hover:border-[#0A66C2]/30 transition-all duration-200 hover:scale-105"
+                  className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border-glow)", color: "var(--text-secondary)" }}
                 >
-                  <Linkedin className="w-4.5 h-4.5" />
+                  <Linkedin className="w-4 h-4" />
                 </a>
               )}
               {profile.twitter_url && (
@@ -125,9 +153,10 @@ export default function PublicProfileClient({
                   href={profile.twitter_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl bg-[#1A1F2E] border border-[#1E2330] flex items-center justify-center text-[#7A8099] hover:text-[#1DA1F2] hover:border-[#1DA1F2]/30 transition-all duration-200 hover:scale-105"
+                  className="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border-glow)", color: "var(--text-secondary)" }}
                 >
-                  <Twitter className="w-4.5 h-4.5" />
+                  <Twitter className="w-4 h-4" />
                 </a>
               )}
             </div>
@@ -159,9 +188,9 @@ export default function PublicProfileClient({
             <p className="text-[11px] text-[#7A8099] mt-0.5 uppercase tracking-wider">Wins</p>
           </div>
 
-          <div className="hack-card rounded-xl p-4 text-center group hover:border-[#00FF87]/20 transition-colors">
-            <div className="w-9 h-9 mx-auto mb-2 rounded-lg bg-[#00FF87]/10 flex items-center justify-center">
-              <BarChart3 className="w-4.5 h-4.5 text-[#00FF87]" />
+          <div className="hack-card rounded-xl p-4 text-center group hover:border-[#00e5ff]/20 transition-colors">
+            <div className="w-9 h-9 mx-auto mb-2 rounded-lg bg-[#00e5ff]/10 flex items-center justify-center">
+              <BarChart3 className="w-4.5 h-4.5 text-[#00e5ff]" />
             </div>
             <p className="text-2xl font-bold text-[#E8EAF0] font-mono">
               {profile.stats.win_rate}
@@ -276,7 +305,7 @@ export default function PublicProfileClient({
         <div className="text-center pt-4 border-t border-[#1E2330]">
           <a
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-[#454D66] hover:text-[#00FF87] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-[#454D66] hover:text-[#00e5ff] transition-colors"
           >
             Built with HackTrack <ExternalLink className="w-3 h-3" />
           </a>

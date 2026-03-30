@@ -41,7 +41,7 @@ export function getStatusColor(status: string): string {
   switch (status?.toLowerCase()) {
     case "active":
     case "submitted":
-      return "bg-[#00FF87]/15 text-[#00FF87] border-[#00FF87]/30";
+      return "bg-[#00e5ff]/15 text-[#00e5ff] border-[#00e5ff]/30";
     case "upcoming":
     case "building":
       return "bg-[#EF9F27]/15 text-[#EF9F27] border-[#EF9F27]/30";
@@ -72,7 +72,7 @@ export function getPlatformColor(platform: string | null | undefined): string {
     case "devpost":
       return "bg-[#00D4FF]/15 text-[#00D4FF]";
     case "dorahacks":
-      return "bg-[#00FF87]/15 text-[#00FF87]";
+      return "bg-[#7b2fff]/15 text-[#7b2fff]";
     default:
       return "bg-[#454D66]/20 text-[#7A8099]";
   }
@@ -87,7 +87,7 @@ export function getPriorityColor(priority: string): string {
     case "medium":
       return "bg-[#00D4FF]/15 text-[#00D4FF] border-[#00D4FF]/30";
     case "low":
-      return "bg-[#00FF87]/15 text-[#00FF87] border-[#00FF87]/30";
+      return "bg-[#00e5ff]/15 text-[#00e5ff] border-[#00e5ff]/30";
     default:
       return "bg-[#454D66]/20 text-[#7A8099] border-[#454D66]/30";
   }

@@ -19,6 +19,49 @@ export default function Hero() {
     <section className="hero-section">
       <StarCanvas />
 
+      {/* Circuit board trace pattern overlay */}
+      <svg
+        className="absolute inset-0 w-full h-full z-[2] pointer-events-none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <pattern
+            id="circuit-pattern"
+            x="0"
+            y="0"
+            width="120"
+            height="120"
+            patternUnits="userSpaceOnUse"
+          >
+            {/* Horizontal traces */}
+            <line x1="0" y1="30" x2="50" y2="30" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            <line x1="70" y1="30" x2="120" y2="30" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            <line x1="0" y1="90" x2="40" y2="90" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            <line x1="80" y1="90" x2="120" y2="90" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            {/* Vertical traces */}
+            <line x1="30" y1="0" x2="30" y2="50" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            <line x1="90" y1="40" x2="90" y2="120" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            <line x1="60" y1="0" x2="60" y2="30" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            <line x1="60" y1="60" x2="60" y2="120" stroke="rgba(123,47,255,0.08)" strokeWidth="1" />
+            {/* Nodes at junctions */}
+            <rect x="28" y="28" width="4" height="4" fill="rgba(123,47,255,0.12)" />
+            <rect x="58" y="28" width="4" height="4" fill="rgba(123,47,255,0.12)" />
+            <rect x="88" y="28" width="4" height="4" fill="rgba(123,47,255,0.10)" />
+            <rect x="28" y="88" width="4" height="4" fill="rgba(123,47,255,0.10)" />
+            <rect x="58" y="58" width="4" height="4" fill="rgba(123,47,255,0.14)" />
+            <rect x="88" y="88" width="4" height="4" fill="rgba(123,47,255,0.12)" />
+            {/* Diagonal trace */}
+            <line x1="50" y1="30" x2="60" y2="60" stroke="rgba(123,47,255,0.06)" strokeWidth="1" />
+            <line x1="40" y1="90" x2="60" y2="60" stroke="rgba(123,47,255,0.06)" strokeWidth="1" />
+            {/* Extra connector */}
+            <line x1="70" y1="30" x2="90" y2="40" stroke="rgba(123,47,255,0.06)" strokeWidth="1" />
+            <line x1="80" y1="90" x2="90" y2="80" stroke="rgba(123,47,255,0.06)" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#circuit-pattern)" />
+      </svg>
+
       {/* Nebula layers */}
       <div className="hero-nebula" />
 
