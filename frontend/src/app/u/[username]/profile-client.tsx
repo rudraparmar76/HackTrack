@@ -187,7 +187,7 @@ export default function PublicProfileClient({
         <div className="h-full flex items-center justify-between px-6 max-w-full">
           {/* Left: Logo */}
           <Link href="/" className="flex items-center">
-            <Logo size="sm" showText={false} />
+            <Logo size="sm" showText={true} />
           </Link>
 
           {/* Right: Sign in or User Status */}
@@ -208,7 +208,7 @@ export default function PublicProfileClient({
               className="text-xs font-mono"
               style={{ color: "var(--text-secondary)" }}
             >
-              {isOwner ? "👤 Your Profile" : "Viewing Profile"}
+              {profile.display_name || profile.username}
             </div>
           )}
         </div>
