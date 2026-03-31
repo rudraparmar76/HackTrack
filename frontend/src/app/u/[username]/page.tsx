@@ -27,15 +27,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const participated = profile.stats?.total_participated || 0;
   const wins = profile.stats?.wins || 0;
   const domains = (profile.stats?.top_domains || []).slice(0, 3).join(", ");
-  const description = `Participated in ${participated} hackathon${participated !== 1 ? "s" : ""}, won ${wins}. ${domains ? `Top domains: ${domains}` : ""}`.trim();
+  const description = `${wins} wins · ${participated} hackathons · ${domains ? `Top domains: ${domains}` : ""}`.trim();
 
-  const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.hack-track.tech"}/api/og?username=${encodeURIComponent(username)}`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.hack-track.tech";
+  const ogImageUrl = `${siteUrl}/api/og/profile?username=${encodeURIComponent(username)}`;
 
   return {
-    title: `${name}'s HackTrack Profile`,
+    title: `${name} (@${username}) — HackTrack`,
     description,
     openGraph: {
-      title: `${name}'s HackTrack Profile`,
+      title: `${name} (@${username}) — HackTrack`,
       description,
       type: "profile",
       images: [
