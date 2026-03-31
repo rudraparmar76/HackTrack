@@ -114,9 +114,9 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
   };
 
   return (
-    <div className="bg-[rgba(6,3,18,0.95)] border-b border-[rgba(123,47,255,0.2)] sticky top-0 z-40 relative shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between overflow-x-auto py-4 scrollbar-hide">
+    <div className="sticky top-0 z-40 relative pt-4 pb-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+        <div className="flex items-center justify-center overflow-x-auto py-2 px-6 scrollbar-hide bg-[rgba(6,3,18,0.95)] border border-[rgba(123,47,255,0.3)] rounded-xl shadow-md">
           <div className="flex items-center min-w-max gap-1">
             {STAGES.map((stage, idx) => {
               const isCompleted = idx <= currentIndex;
