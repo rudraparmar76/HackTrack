@@ -117,7 +117,7 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
     <div className="bg-[rgba(6,3,18,0.95)] border-b border-[rgba(123,47,255,0.2)] sticky top-0 z-40 relative shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between overflow-x-auto py-4 scrollbar-hide">
-          <div className=" min-w-max gap-1">
+          <div className="flex items-center min-w-max gap-1">
             {STAGES.map((stage, idx) => {
               const isCompleted = idx <= currentIndex;
               const isCurrent = idx === currentIndex;
