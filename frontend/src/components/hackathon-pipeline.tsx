@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Trophy, XCircle, LogOut } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  Trophy,
+  XCircle,
+  LogOut,
+  ChevronRight,
+  Loader2
+} from "lucide-react";
 import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ProgressArc } from "@/components/ProgressArc";
+
 export type PipelineStatus =
   | "interested"
   | "registered"
@@ -108,13 +116,76 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
   return (
     <div className="sticky top-0 z-40 relative pt-4 pb-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-        <div className="bg-[rgba(6,3,18,0.3)] backdrop-blur-sm border border-[rgba(123,47,255,0.2)] rounded-3xl p-6 shadow-[0_0_20px_rgba(123,47,255,0.05)] w-full max-w-lg">
-          <ProgressArc 
-            stage={currentStatus} 
-            size="md" 
-            onStageClick={(stageId) => handleStageClick(stageId, 0)} 
-            loadingStage={loading} 
-          />
+        <div className="flex items-center justify-center overflow-x-auto py-2 px-6 scrollbar-hide bg-[rgba(6,3,18,0.95)] border border-[rgba(123,47,255,0.3)] rounded-xl shadow-md">
+          <div className="flex items-center min-w-max gap-1">
+            {STAGES.map((stage, idx) => {
+              const isCompleted = idx <= currentIndex;
+              const isCurrent = idx === currentIndex;
+              const isPast = idx < currentIndex;
+              
+              let StatusIcon = Circle;
+              let iconColor = "text-[#454D66]";
+              let textColor = "text-[#7A8099]";
+              let bgColor = "bg-transparent";
+
+              if (isCompleted) {
+                StatusIcon = CheckCircle2;
+                iconColor = "text-[#00FF87]";
+                textColor = isCurrent ? "text-[#E8EAF0] font-bold" : "text-[#E8EAF0]";
+              }
+
+              // Special handling for result stage
+              if (stage.id === "result" && isCompleted) {
+                if (currentStatus === "won") {
+                  StatusIcon = Trophy;
+                  iconColor = "text-[#FFD700]";
+                  bgColor = "bg-[#FFD700]/10 border-[#FFD700]/30 shadow-[0_0_15px_rgba(255,215,0,0.15)]";
+                  textColor = "text-[#FFD700] font-bold";
+                } else if (currentStatus === "lost") {
+                  StatusIcon = XCircle;
+                  iconColor = "text-[#EF4444]";
+                  textColor = "text-[#EF4444]";
+                } else if (currentStatus === "withdrew") {
+                  StatusIcon = LogOut;
+                  iconColor = "text-[#EF9F27]";
+                  textColor = "text-[#EF9F27]";
+                }
+              }
+
+              return (
+                <div key={stage.id} className="flex items-center">
+                  <button
+                    onClick={() => handleStageClick(stage.id, idx)}
+                    disabled={loading !== null}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-none font-mono transition-all border border-transparent whitespace-nowrap ${
+                      isCurrent && stage.id !== "result"
+                        ? "bg-[rgba(0,212,255,0.05)] border-l-2 border-l-[var(--cyan-accent)] text-[var(--cyan-accent)]"
+                        : "hover:bg-[rgba(123,47,255,0.05)] hover:border-l-2 hover:border-l-[rgba(123,47,255,0.3)]"
+                    } ${bgColor}`}
+                  >
+                    {loading === stage.id ? (
+                      <Loader2 className={`w-3.5 h-3.5 animate-spin ${iconColor}`} />
+                    ) : (
+                      <span className={`text-[#454D66] font-bold`}>
+                         {isCompleted ? "[x]" : "[ ]"}
+                      </span>
+                    )}
+                    <span className={`text-xs tracking-wide uppercase ${textColor}`}>
+                      {stage.id === "result" && isCompleted && currentStatus !== "submitted"
+                        ? currentStatus
+                        : stage.label}
+                    </span>
+                  </button>
+
+                  {idx < STAGES.length - 1 && (
+                    <span className={`mx-2 text-xs font-mono ${isPast ? "text-[var(--cyan-accent)]/50" : "text-[#454D66]"}`}>
+                      {">"}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

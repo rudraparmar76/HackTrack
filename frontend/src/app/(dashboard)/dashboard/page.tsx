@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { ProgressArc } from "@/components/ProgressArc";
 
 interface Hackathon {
   id: string;
@@ -470,8 +469,31 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Pipeline Indicator */}
-                          <div className="pt-4 flex justify-center">
-                            <ProgressArc stage={hack.status} size="sm" />
+                          <div className="pt-2">
+                            <div className="flex items-center justify-between relative px-1">
+                              {/* Progress Line Background */}
+                              <div className="absolute top-1/2 -translate-y-1/2 left-2 right-2 h-[1px] bg-[rgba(123,47,255,0.2)] z-0" />
+                              
+                              {/* Progress Line Foreground */}
+                              <div 
+                                className="absolute top-1/2 -translate-y-1/2 left-2 h-[1px] bg-[var(--cyan-accent)] z-[1] transition-all duration-500 shadow-[0_0_4px_var(--cyan-accent)]"
+                                style={{ 
+                                  width: hack.won ? '100%' : hack.status === 'submitted' ? '66%' : hack.status === 'building' ? '33%' : '0%'
+                                }} 
+                              />
+                              
+                              {/* Stages */}
+                              <div className={`relative z-10 w-2 h-2 rounded-full ${['active', 'building', 'submitted'].includes(hack.status) || hack.won ? 'bg-[var(--cyan-accent)] shadow-[0_0_5px_var(--cyan-accent)]' : 'bg-[#151820] border border-[#454D66]'}`} />
+                              <div className={`relative z-10 w-2 h-2 rounded-full ${['building', 'submitted'].includes(hack.status) || hack.won ? 'bg-[var(--cyan-accent)] shadow-[0_0_5px_var(--cyan-accent)]' : 'bg-[#151820] border border-[#454D66]'}`} />
+                              <div className={`relative z-10 w-2 h-2 rounded-full ${['submitted'].includes(hack.status) || hack.won ? 'bg-[var(--cyan-accent)] shadow-[0_0_5px_var(--cyan-accent)]' : 'bg-[#151820] border border-[#454D66]'}`} />
+                              <div className={`relative z-10 w-2 h-2 rounded-full ${hack.won ? 'bg-[#FFD700] shadow-[0_0_5px_#FFD700]' : 'bg-[#151820] border border-[#454D66]'}`} />
+                            </div>
+                            <div className="flex items-center justify-between text-[9px] font-mono text-[var(--text-secondary)] mt-2 uppercase tracking-wide">
+                              <span className={['active', 'building', 'submitted'].includes(hack.status) || hack.won ? "text-[rgba(255,255,255,0.9)]" : ""}>Set Up</span>
+                              <span className={['building', 'submitted'].includes(hack.status) || hack.won ? "text-[rgba(255,255,255,0.9)]" : ""}>Build</span>
+                              <span className={['submitted'].includes(hack.status) || hack.won ? "text-[rgba(255,255,255,0.9)]" : ""}>Submit</span>
+                              <span className={hack.won ? "text-[var(--gold,#FFD700)]" : ""}>Won</span>
+                            </div>
                           </div>
 
                           <div className="flex items-center gap-4 text-xs text-[#7A8099] pt-1">
