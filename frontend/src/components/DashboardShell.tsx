@@ -2,7 +2,8 @@
 
 import { Sidebar } from "@/components/sidebar";
 import { useState } from "react";
-import { Menu, Terminal } from "lucide-react";
+import { Menu } from "lucide-react";
+import Logo from "@/components/Logo";
 
 export default function DashboardShell({
   children,
@@ -19,12 +20,7 @@ export default function DashboardShell({
         style={{ background: "rgba(6, 3, 18, 0.98)", borderColor: "rgba(123,47,255,0.15)" }}
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-            <Terminal className="w-4 h-4 text-purple-400" />
-          </div>
-          <span className="pixel text-[10px] text-[#E8EAF0] tracking-wide">
-            HACK<span className="text-purple-400">TRACK</span>
-          </span>
+          <Logo size="sm" />
         </div>
         <button
           onClick={() => setSidebarOpen(true)}
