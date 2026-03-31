@@ -147,7 +147,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               <div
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "9px",
+                  fontSize: "14px",
                   letterSpacing: "0.2em",
                   textTransform: "uppercase",
                   color: "rgba(123,47,255,0.6)",
@@ -197,7 +197,7 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                         }
                       }}
                     >
-                      <item.icon style={{ width: "16px", height: "16px", color: "inherit" }} />
+                      <item.icon style={{ width: "20px", height: "20px", color: "inherit" }} />
                       <span className="flex-1">{item.label}</span>
                       {item.label === "Notifications" && unreadCount > 0 && (
                         <span

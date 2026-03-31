@@ -260,8 +260,12 @@ export default function DashboardPage() {
       {/* Page title */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" style={{ padding: "32px 40px 0" }}>
         <div>
-          <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "16px", color: "white" }}>DASHBOARD</h1>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "var(--text-secondary)" }} className="mt-2 flex items-center">
+          <div className="dash-terminal mb-2">
+            <span>$ hacktrack --dashboard</span>
+            <span className="cursor"></span>
+          </div>
+          <h1 className="dash-heading" style={{ fontSize: "20px" }}>DASHBOARD</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-2 font-mono flex items-center">
             Welcome back, {profileUsername || "hacker"} <span className="w-2 h-[14px] bg-[var(--text-secondary)] animate-pulse inline-block ml-1" />
           </p>
         </div>
