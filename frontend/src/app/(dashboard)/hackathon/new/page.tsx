@@ -238,7 +238,7 @@ export default function NewHackathonPage() {
 
       {/* URL Scraper */}
       <div className="hack-card dash-card-glow rounded-xl p-6 space-y-4 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[rgba(123,47,255,0.05)] blur-[3xl] pointer-events-none" />
+        {/* <div className="absolute top-0 right-0 w-32 h-32 bg-[rgba(123,47,255,0.05)] blur-[3xl] pointer-events-none" /> */}
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-lg bg-[rgba(123,47,255,0.1)] border border-[rgba(123,47,255,0.2)] flex items-center justify-center shadow-[0_0_8px_rgba(123,47,255,0.15)] relative z-10 text-[var(--purple-primary)]">
             <Terminal className="w-5 h-5" />

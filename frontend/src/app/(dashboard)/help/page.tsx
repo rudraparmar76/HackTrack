@@ -86,7 +86,7 @@ export default function HelpPage() {
               If you couldn't find your answer in the knowledge base, feel free to reach out directly to our maintainers.
             </p>
             <a href="mailto:support@hack-track.tech">
-              <Button style={{ background: "var(--purple-primary)", color: "white" }} className="w-full font-mono text-xs hover:opacity-90 transition-opacity">
+              <Button style={{ background: "var(--purple-primary)", color: "white" }} className="w-full font-mono text-xs hover:opacity-90 transition-opacity shadow-none">
                 Send an Email
               </Button>
             </a>

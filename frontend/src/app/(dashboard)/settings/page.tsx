@@ -245,9 +245,10 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <Button onClick={handleSaveAccount} disabled={saving} className="gap-2">
+          <Button onClick={handleSaveAccount} disabled={saving} style={{ background: "var(--purple-primary)", color: "white" }} className="gap-2 font-mono text-xs hover:opacity-90 transition-opacity shadow-none">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             Save Changes
+            
           </Button>
         </div>
       )}

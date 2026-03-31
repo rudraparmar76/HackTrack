@@ -104,7 +104,7 @@ export default function RemindersPage() {
         </div>
         <Dialog open={showAdd} onOpenChange={setShowAdd}>
           <DialogTrigger asChild>
-            <Button className="gap-2"><Plus className="w-4 h-4" /> New Reminder</Button>
+            <Button className="gap-2 font-mono text-xs hover:opacity-90 transition-opacity shadow-none" style={{ background: "var(--purple-primary)", color: "white" }}><Plus className="w-4 h-4" /> New Reminder</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Create Reminder</DialogTitle></DialogHeader>
