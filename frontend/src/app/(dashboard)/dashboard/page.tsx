@@ -405,6 +405,7 @@ export default function DashboardPage() {
                             <img
                               src={hack.banner_url}
                               alt={hack.name}
+                              loading="lazy"
                               className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500"
                             />
                           ) : (

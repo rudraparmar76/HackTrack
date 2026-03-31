@@ -201,6 +201,7 @@ function HackathonCard({
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            loading="lazy"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

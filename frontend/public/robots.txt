@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /discover
+Allow: /u/
+Disallow: /dashboard
+Disallow: /hackathon/
+Disallow: /settings
+Disallow: /api/
+Sitemap: https://hack-track.tech/sitemap.xml

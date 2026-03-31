@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import StarCanvas from "./StarCanvas";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const StarCanvas = dynamic(() => import("./StarCanvas"), { ssr: false });
 
 const stagger = {
   hidden: {},

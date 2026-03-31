@@ -673,7 +673,7 @@ export default function HackathonDetailPage() {
           {/* Banner */}
           {hackathon.banner_url && (
             <div className="rounded-xl overflow-hidden h-48 border border-[rgba(123,47,255,0.2)] shadow-[0_0_20px_rgba(123,47,255,0.1)]">
-              <img src={hackathon.banner_url} alt={hackathon.name} className="w-full h-full object-cover" />
+              <img src={hackathon.banner_url} alt={hackathon.name} loading="lazy" className="w-full h-full object-cover" />
             </div>
           )}
 

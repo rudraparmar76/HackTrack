@@ -14,6 +14,21 @@ import CustomCursor from "@/components/landing/CustomCursor";
 export default function LandingPage() {
   return (
     <div className="landing-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            name: "HackTrack",
+            url: "https://hack-track.tech",
+            description: "All-in-one hackathon tracking platform",
+            applicationCategory: "DeveloperApplication",
+            operatingSystem: "Web",
+            offers: { "@type": "Offer", price: "0" },
+          }),
+        }}
+      />
       <CustomCursor />
       <Navbar />
       <Hero />
