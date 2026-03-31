@@ -96,7 +96,7 @@ export default function PublicProfileClient({
       setCurrentUser(user);
       
       if (user) {
-        const { data: profile: userProfile } = await supabase
+        const { data: userProfile } = await supabase
           .from("profiles")
           .select("username")
           .eq("id", user.id)
