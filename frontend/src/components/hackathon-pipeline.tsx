@@ -98,7 +98,7 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
           particleCount: 150,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#FFD700', '#FFA500', '#00FF87', '#00D4FF']
+          colors: ['#FFD700', '#FFA500', '#7b2fff', '#00D4FF']
         });
       }
 
@@ -130,7 +130,7 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
 
               if (isCompleted) {
                 StatusIcon = CheckCircle2;
-                iconColor = "text-[#00FF87]";
+                iconColor = "text-[var(--purple-primary)]";
                 textColor = isCurrent ? "text-[#E8EAF0] font-bold" : "text-[#E8EAF0]";
               }
 

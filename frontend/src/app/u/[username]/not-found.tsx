@@ -6,7 +6,7 @@ export default function ProfileNotFound() {
     <div className="min-h-screen bg-[#0F1117] flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Background aesthetic blobs */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#EF9F27]/[0.05] rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-[#00FF87]/[0.03] rounded-full blur-[80px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-[rgba(123,47,255,0.04)] rounded-full blur-[80px] pointer-events-none" />
 
       <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full">
         {/* Abstract 404 Icon Container */}
@@ -36,7 +36,7 @@ export default function ProfileNotFound() {
           
           <Link 
             href="/" 
-            className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#00FF87]/10 hover:bg-[#00FF87]/20 border border-[#00FF87]/20 text-[#00FF87] rounded-xl font-medium transition-all duration-200"
+            className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[rgba(123,47,255,0.12)] hover:bg-[rgba(123,47,255,0.2)] border border-[rgba(123,47,255,0.25)] text-[var(--purple-primary)] rounded-xl font-medium transition-all duration-200"
           >
             <Home className="w-4 h-4" />
             Home Base

@@ -76,7 +76,7 @@ export default function Footer() {
             </svg>
           </a>
         </div>
-        <span className="footer-copy">© 2025 HackTrack. Built for hackers.</span>
+        <span className="footer-copy">© 2026 HackTrack. Built for hackers.</span>
       </div>
     </footer>
   );

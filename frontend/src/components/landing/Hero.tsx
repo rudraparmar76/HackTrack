@@ -106,7 +106,10 @@ export default function Hero() {
 
         {/* Live stats */}
         <motion.div variants={fadeUp} className="hero-stats">
-          <span>🟢 <span className="stat-number">247</span> hackathons tracked live</span>
+          <span className="inline-flex items-center gap-2">
+            <span className="live-dot" />
+            <span className="stat-number">247</span> hackathons tracked live
+          </span>
           <span className="stat-separator">·</span>
           <span>⚡ <span className="stat-number">3</span> platforms synced</span>
           <span className="stat-separator">·</span>

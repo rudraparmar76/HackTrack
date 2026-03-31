@@ -514,7 +514,7 @@ export default function HackathonDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00FF87]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--purple-primary)]" />
       </div>
     );
   }
@@ -549,7 +549,7 @@ export default function HackathonDetailPage() {
               </h1>
               <span className={`px-2.5 py-0.5 rounded-sm font-mono text-[10px] uppercase font-bold border flex items-center gap-1.5 ${getStatusColor(hackathon.status)}`}>
                 {hackathon.status === "active" && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] pulse-dot" />
+                  <span className="live-dot" />
                 )}
                 {hackathon.status}
               </span>
@@ -898,7 +898,7 @@ export default function HackathonDetailPage() {
               <div className="space-y-3">
                 {aiIdeas.map((idea, idx) => {
                   const difficultyColors: Record<string, string> = {
-                    beginner: "bg-[rgba(0,255,135,0.1)] text-[#00FF87] border-[rgba(0,255,135,0.2)]",
+                    beginner: "bg-[rgba(123,47,255,0.12)] text-[var(--purple-primary)] border-[rgba(123,47,255,0.25)]",
                     intermediate: "bg-[rgba(239,159,39,0.1)] text-[#EF9F27] border-[rgba(239,159,39,0.2)]",
                     advanced: "bg-red-500/10 text-red-400 border-red-500/20",
                   };
@@ -923,7 +923,7 @@ export default function HackathonDetailPage() {
                           {/* Track */}
                           {idea.track && (
                             <div className="mb-2.5">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#00FF87]/10 text-[#00FF87] border border-[#00FF87]/20">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-[rgba(123,47,255,0.12)] text-[var(--purple-primary)] border border-[rgba(123,47,255,0.25)]">
                                 <Zap className="w-2.5 h-2.5" />
                                 {idea.track}
                               </span>
@@ -965,7 +965,7 @@ export default function HackathonDetailPage() {
                               variant="ghost"
                               onClick={() => saveIdeaToNotes(idea, idx)}
                               disabled={savingIdeaIdx === idx}
-                              className="h-7 text-[10px] gap-1 text-[#7A8099] hover:text-[#00FF87] hover:bg-[#00FF87]/10"
+                              className="h-7 text-[10px] gap-1 text-[#7A8099] hover:text-[var(--purple-primary)] hover:bg-[rgba(123,47,255,0.12)]"
                             >
                               {savingIdeaIdx === idx ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />

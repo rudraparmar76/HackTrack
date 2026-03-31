@@ -1348,65 +1348,6 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   TECH STACK
-   ═══════════════════════════════════════════════════════════════ */
-.techstack-section {
-  padding: 80px 40px;
-  background: var(--bg-void);
-}
-
-.techstack-intro {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--text-secondary);
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.techstack-tiers {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.techstack-tier {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.techstack-tier-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.techstack-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.techstack-pill {
-  background: rgba(20, 10, 50, 0.8);
-  border: 1px solid var(--border-glow);
-  border-radius: 4px;
-  padding: 10px 20px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: #fff;
-  transition: all 200ms;
-}
-
-.techstack-pill:hover {
-  box-shadow: var(--glow-sm);
-  border-color: var(--purple-primary);
-}
-
-/* ═══════════════════════════════════════════════════════════════
    FAQ
    ═══════════════════════════════════════════════════════════════ */
 .faq-section {
@@ -1715,20 +1656,6 @@
     border-top: 2px solid var(--border-glow);
   }
 
-  /* Tech Stack */
-  .techstack-section {
-    padding: 40px 16px;
-  }
-
-  .techstack-pills {
-    gap: 8px;
-  }
-
-  .techstack-pill {
-    padding: 8px 14px;
-    font-size: 11px;
-  }
-
   /* FAQ */
   .faq-section {
     padding: 40px 16px;
@@ -1787,9 +1714,6 @@
     margin-top: 0;
   }
 
-  .techstack-pills {
-    gap: 8px;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1835,9 +1759,6 @@
   z-index: 0;
 }
 
-.glow-green {
-  box-shadow: 0 0 30px rgba(123, 47, 255, 0.12);
-}
 
 .glow-border {
   position: relative;
@@ -1874,6 +1795,29 @@
 
 .pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--cyan-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--cyan-accent);
+  animation: pulse 2s infinite;
 }
 
 .status-active {

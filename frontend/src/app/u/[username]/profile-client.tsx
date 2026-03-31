@@ -208,7 +208,7 @@ export default function PublicProfileClient({
               className="text-xs font-mono"
               style={{ color: "var(--text-secondary)" }}
             >
-              {profile.display_name || profile.username}
+              👤{profile.display_name || profile.username}
             </div>
           )}
         </div>

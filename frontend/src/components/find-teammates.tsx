@@ -236,7 +236,7 @@ function LftPostCard({
       transition={{ duration: 0.25 }}
       className={`hack-card dash-card-glow rounded-xl p-5 border transition-all ${
         post.is_own 
-        ? "border-[rgba(0,255,135,0.3)] bg-[rgba(0,255,135,0.02)] shadow-[0_0_8px_rgba(0,255,135,0.1)]" 
+        ? "border-[rgba(123,47,255,0.35)] bg-[rgba(123,47,255,0.05)] shadow-[0_0_8px_rgba(123,47,255,0.18)]" 
         : "border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)] hover:border-[var(--cyan-accent)] hover:shadow-[0_0_10px_rgba(0,212,255,0.1)]"
       }`}
     >
@@ -250,7 +250,7 @@ function LftPostCard({
             <p className="text-sm font-bold text-[var(--cyan-accent)] truncate">
               {post.display_name}
               {post.is_own && (
-                <span className="ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[#00FF87]/15 text-[#00FF87] border border-[#00FF87]/20">
+                <span className="ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[rgba(123,47,255,0.15)] text-[var(--purple-primary)] border border-[rgba(123,47,255,0.3)]">
                   You
                 </span>
               )}
@@ -262,7 +262,7 @@ function LftPostCard({
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={onEdit}
-              className="p-1.5 rounded-lg text-[#454D66] hover:text-[#00FF87] hover:bg-[#00FF87]/10 transition-all"
+              className="p-1.5 rounded-lg text-[#454D66] hover:text-[var(--purple-primary)] hover:bg-[rgba(123,47,255,0.1)] transition-all"
               title="Edit post"
             >
               <Pencil className="w-3.5 h-3.5" />
@@ -497,7 +497,7 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-[#00FF87]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[var(--purple-primary)]" />
       </div>
     );
   }
@@ -525,7 +525,7 @@ export default function FindTeammates({ hackathonId }: FindTeammatesProps) {
             onClick={ownPost ? startEdit : () => setShowForm(!showForm)}
             className={`gap-1.5 text-xs h-8 font-mono shrink-0 ${
               ownPost
-                ? "bg-[rgba(0,255,135,0.1)] text-[#00FF87] hover:bg-[rgba(0,255,135,0.2)] border border-[rgba(0,255,135,0.3)] uppercase tracking-wider font-bold"
+                ? "bg-[rgba(123,47,255,0.12)] text-[var(--purple-primary)] hover:bg-[rgba(123,47,255,0.2)] border border-[rgba(123,47,255,0.3)] uppercase tracking-wider font-bold"
                 : "bg-[var(--cyan-accent)] hover:bg-[var(--cyan-accent)]/80 text-black border border-transparent uppercase tracking-wider font-bold"
             }`}
           >

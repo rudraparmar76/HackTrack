@@ -1073,7 +1073,7 @@ function DiscoverContent() {
                 DISCOVER
               </h1>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(123,47,255,0.15)", border: "1px solid var(--border-glow)", borderRadius: "4px", color: "var(--cyan-accent)", fontFamily: "'JetBrains Mono', monospace" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan-accent)] animate-pulse" />
+                <span className="live-dot" />
                 LIVE
               </span>
             </div>

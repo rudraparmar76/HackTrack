@@ -996,7 +996,7 @@ app.post("/api/hackathons/:id/invites", async (req, res) => {
             <h2 style="margin-bottom: 8px;">HackTrack Team Invite</h2>
             <p style="margin: 0 0 8px 0;"><strong>${safeInviterName}</strong> invited you to join <strong>${safeHackathonName}</strong>.</p>
             <p style="margin: 0 0 14px 0;">Role: <strong>${escapeHtml(role)}</strong></p>
-            <a href="${inviteUrl}" style="display: inline-block; padding: 10px 14px; background: #00FF87; color: #111; text-decoration: none; border-radius: 8px; font-weight: 600;">Accept Invite</a>
+            <a href="${inviteUrl}" style="display: inline-block; padding: 10px 14px; background: #7b2fff; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600;">Accept Invite</a>
             <p style="margin-top: 12px; color: #555; font-size: 12px;">This invite expires in 7 days.</p>
           </div>
         `,

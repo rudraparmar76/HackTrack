@@ -416,7 +416,7 @@ export default function DashboardPage() {
                           {/* Status Badge */}
                           <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(hack.status)}`}>
                             {hack.status === "active" && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] pulse-dot" />
+                              <span className="live-dot" />
                             )}
                             {hack.status.charAt(0).toUpperCase() + hack.status.slice(1)}
                           </div>

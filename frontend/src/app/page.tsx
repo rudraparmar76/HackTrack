@@ -6,7 +6,6 @@ import Schedule from "@/components/landing/Schedule";
 import Features from "@/components/landing/Features";
 import About from "@/components/landing/About";
 import Tracks from "@/components/landing/Tracks";
-import TechStack from "@/components/landing/TechStack";
 import FAQ from "@/components/landing/FAQ";
 import DiscordCTA from "@/components/landing/DiscordCTA";
 import Footer from "@/components/landing/Footer";
@@ -22,7 +21,6 @@ export default function LandingPage() {
       <Features />
       <About />
       <Tracks />
-      <TechStack />
       <FAQ />
       <DiscordCTA />
       <Footer />

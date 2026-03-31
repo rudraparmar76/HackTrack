@@ -238,13 +238,13 @@ export default function NewHackathonPage() {
 
       {/* URL Scraper */}
       <div className="hack-card dash-card-glow rounded-xl p-6 space-y-4 border border-[rgba(123,47,255,0.2)] bg-[rgba(6,3,18,0.5)] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[rgba(0,255,135,0.05)] blur-[3xl] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[rgba(123,47,255,0.05)] blur-[3xl] pointer-events-none" />
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-lg bg-[rgba(0,255,135,0.1)] border border-[rgba(0,255,135,0.2)] flex items-center justify-center shadow-[0_0_8px_rgba(0,255,135,0.15)] relative z-10 text-[#00FF87]">
+          <div className="w-10 h-10 rounded-lg bg-[rgba(123,47,255,0.1)] border border-[rgba(123,47,255,0.2)] flex items-center justify-center shadow-[0_0_8px_rgba(123,47,255,0.15)] relative z-10 text-[var(--purple-primary)]">
             <Terminal className="w-5 h-5" />
           </div>
           <div className="relative z-10">
-            <h2 className="font-mono font-bold text-sm text-[#00FF87] uppercase tracking-wider flex items-center gap-2">
+            <h2 className="font-mono font-bold text-sm text-[var(--purple-primary)] uppercase tracking-wider flex items-center gap-2">
               <span className="text-[var(--text-secondary)]">//</span> Smart Link Scraper
             </h2>
             <p className="text-[10px] font-mono text-[#7A8099] uppercase tracking-widest mt-0.5">
@@ -259,10 +259,10 @@ export default function NewHackathonPage() {
               placeholder="// Paste hackathon URL here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="pl-10 w-full bg-[#0F1117] border-[rgba(0,255,135,0.2)] focus-visible:ring-[#00FF87] text-sm font-mono text-[#E8EAF0] placeholder:text-[#454D66] selection:bg-[#00FF87] selection:text-black"
+              className="pl-10 w-full bg-[#0F1117] border-[rgba(123,47,255,0.2)] focus-visible:ring-[var(--purple-primary)] text-sm font-mono text-[#E8EAF0] placeholder:text-[#454D66] selection:bg-[var(--purple-primary)] selection:text-white"
             />
           </div>
-          <Button onClick={handleScrape} disabled={scraping || !url.trim()} className="gap-2 w-full sm:w-auto font-mono text-xs font-bold uppercase tracking-wider bg-[#00FF87]/10 text-[#00FF87] border border-[#00FF87]/30 hover:bg-[#00FF87]/20 shadow-[0_0_10px_rgba(0,255,135,0.1)] disabled:opacity-50">
+          <Button onClick={handleScrape} disabled={scraping || !url.trim()} className="gap-2 w-full sm:w-auto font-mono text-xs font-bold uppercase tracking-wider bg-[rgba(123,47,255,0.12)] text-[var(--purple-primary)] border border-[rgba(123,47,255,0.3)] hover:bg-[rgba(123,47,255,0.2)] shadow-[0_0_10px_rgba(123,47,255,0.1)] disabled:opacity-50">
             {scraping ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" /> Scraping...
@@ -275,7 +275,7 @@ export default function NewHackathonPage() {
           </Button>
         </div>
         {scraped && (
-          <div className="flex items-center gap-2 text-xs font-mono text-[#00FF87] uppercase tracking-wider relative z-10">
+          <div className="flex items-center gap-2 text-xs font-mono text-[var(--purple-primary)] uppercase tracking-wider relative z-10">
             <CheckCircle2 className="w-4 h-4" />
             Data extracted! Review and edit below before saving.
           </div>
@@ -415,7 +415,7 @@ export default function NewHackathonPage() {
             <button
               type="button"
               onClick={() => setProblemStatements([...problemStatements, { track: "", title: "" }])}
-              className="text-xs text-[#00FF87] hover:text-[#00FF87]/80 transition-colors font-mono font-bold uppercase tracking-wider bg-[#00FF87]/10 px-2.5 py-1 rounded-sm border border-[#00FF87]/20 hover:bg-[#00FF87]/20"
+              className="text-xs text-[var(--purple-primary)] hover:text-[var(--purple-primary)]/80 transition-colors font-mono font-bold uppercase tracking-wider bg-[rgba(123,47,255,0.12)] px-2.5 py-1 rounded-sm border border-[rgba(123,47,255,0.25)] hover:bg-[rgba(123,47,255,0.2)]"
             >
               + ADD
             </button>

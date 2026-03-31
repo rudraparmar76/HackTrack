@@ -59,7 +59,7 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#00FF87]" /></div>
+        <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[var(--purple-primary)]" /></div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-20">
           <Bell className="w-16 h-16 text-[#1E2330] mx-auto mb-4" />

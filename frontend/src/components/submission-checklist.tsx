@@ -86,7 +86,7 @@ function SortableChecklistItem({
       transition={{ duration: 0.2 }}
       className={`group flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 ${
         item.checked
-          ? "bg-[rgba(0,255,135,0.05)] border-[rgba(0,255,135,0.2)]"
+          ? "bg-[rgba(123,47,255,0.08)] border-[rgba(123,47,255,0.25)]"
           : "bg-[rgba(6,3,18,0.5)] border-[rgba(123,47,255,0.2)] hover:border-[var(--cyan-accent)] shadow-sm hover:shadow-[0_0_8px_rgba(0,212,255,0.1)]"
       } ${isDragging ? "shadow-xl shadow-[var(--cyan-accent)]/10 ring-1 ring-[var(--cyan-accent)]/20" : ""}`}
     >
@@ -107,7 +107,7 @@ function SortableChecklistItem({
         aria-label={item.checked ? "Uncheck item" : "Check item"}
       >
         {item.checked ? (
-          <CheckCircle2 className="w-5 h-5 text-[#00FF87] drop-shadow-[0_0_6px_rgba(0,255,135,0.3)]" />
+          <CheckCircle2 className="w-5 h-5 text-[var(--purple-primary)] drop-shadow-[0_0_6px_rgba(123,47,255,0.3)]" />
         ) : (
           <Circle className="w-5 h-5 text-[rgba(123,47,255,0.5)] hover:text-[var(--cyan-accent)] transition-colors" />
         )}
@@ -117,7 +117,7 @@ function SortableChecklistItem({
       <span
         className={`flex-1 text-sm font-mono transition-all duration-200 select-none ${
           item.checked
-            ? "line-through text-[#00FF87]/60"
+            ? "line-through text-[rgba(123,47,255,0.6)]"
             : "text-[#E8EAF0]"
         }`}
       >
@@ -319,7 +319,7 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-[#00FF87]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[var(--purple-primary)]" />
       </div>
     );
   }
@@ -332,11 +332,11 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-500 border ${
               allComplete
-                ? "bg-gradient-to-br from-[#00FF87]/20 to-[#00D4FF]/20 border-[#00FF87]/30 shadow-[0_0_15px_rgba(0,255,135,0.2)]"
+                ? "bg-gradient-to-br from-[rgba(123,47,255,0.2)] to-[#00D4FF]/20 border-[rgba(123,47,255,0.3)] shadow-[0_0_15px_rgba(123,47,255,0.2)]"
                 : "bg-[rgba(123,47,255,0.1)] border-[rgba(123,47,255,0.2)] shadow-[0_0_10px_rgba(123,47,255,0.1)]"
             }`}>
               {allComplete ? (
-                <Trophy className="w-5 h-5 text-[#00FF87] drop-shadow-[0_0_5px_rgba(0,255,135,0.5)]" />
+                <Trophy className="w-5 h-5 text-[var(--purple-primary)] drop-shadow-[0_0_5px_rgba(123,47,255,0.5)]" />
               ) : (
                 <CheckCircle2 className="w-5 h-5 text-[var(--cyan-accent)]" />
               )}
@@ -350,7 +350,7 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
           </div>
           <div className="text-right">
             <p className={`text-xl font-bold font-mono transition-colors duration-300 ${
-              allComplete ? "text-[#00FF87] drop-shadow-[0_0_8px_rgba(0,255,135,0.5)]" : progressPercent > 50 ? "text-[var(--cyan-accent)]" : "text-[#E8EAF0]"
+              allComplete ? "text-[var(--purple-primary)] drop-shadow-[0_0_8px_rgba(123,47,255,0.5)]" : progressPercent > 50 ? "text-[var(--cyan-accent)]" : "text-[#E8EAF0]"
             }`}>
               {checkedCount}/{totalCount}
             </p>
@@ -364,7 +364,7 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
             <motion.div
               className={`h-full rounded-sm ${
                 allComplete
-                  ? "bg-gradient-to-r from-[#00FF87] to-[var(--cyan-accent)] shadow-[0_0_10px_rgba(0,255,135,0.5)]"
+                  ? "bg-gradient-to-r from-[var(--purple-primary)] to-[var(--cyan-accent)] shadow-[0_0_10px_rgba(123,47,255,0.5)]"
                   : "bg-[var(--cyan-accent)] shadow-[0_0_10px_rgba(0,212,255,0.3)]"
               }`}
               initial={{ width: 0 }}
@@ -385,14 +385,14 @@ export default function SubmissionChecklist({ hackathonId }: SubmissionChecklist
               animate={{ opacity: 1, y: 0, height: "auto" }}
               exit={{ opacity: 0, y: -10, height: 0 }}
               transition={{ duration: 0.4 }}
-              className="mt-4 bg-gradient-to-r from-[#00FF87]/10 via-[#00D4FF]/10 to-[#00FF87]/10 border border-[#00FF87]/20 rounded-xl px-5 py-4 text-center"
+              className="mt-4 bg-gradient-to-r from-[rgba(123,47,255,0.12)] via-[#00D4FF]/10 to-[rgba(123,47,255,0.12)] border border-[rgba(123,47,255,0.2)] rounded-xl px-5 py-4 text-center"
             >
               <div className="flex items-center justify-center gap-2 mb-1">
-                <PartyPopper className="w-5 h-5 text-[#00FF87]" />
+                <PartyPopper className="w-5 h-5 text-[var(--purple-primary)]" />
                 <Trophy className="w-5 h-5 text-[#EF9F27]" />
                 <Sparkles className="w-5 h-5 text-[#00D4FF]" />
               </div>
-              <p className="text-sm font-bold text-[#00FF87]">Ready to submit! 🚀</p>
+              <p className="text-sm font-bold text-[var(--purple-primary)]">Ready to submit! 🚀</p>
               <p className="text-[11px] text-[#7A8099] mt-0.5">
                 All checklist items completed. You&apos;re good to go!
               </p>

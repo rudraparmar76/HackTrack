@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
             width: "500px",
             height: "500px",
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(0,255,135,0.06) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(123,47,255,0.08) 0%, transparent 70%)",
             display: "flex",
           }}
         />
@@ -180,7 +180,7 @@ export async function GET(req: NextRequest) {
                 minWidth: "140px",
               }}
             >
-              <div style={{ fontSize: "36px", fontWeight: 700, color: "#00FF87" }}>
+              <div style={{ fontSize: "36px", fontWeight: 700, color: "#7b2fff" }}>
                 {winRate}
               </div>
               <div style={{ fontSize: "13px", color: "#7A8099", textTransform: "uppercase", letterSpacing: "1px", marginTop: "4px" }}>
@@ -244,12 +244,12 @@ export async function GET(req: NextRequest) {
                 width: "28px",
                 height: "28px",
                 borderRadius: "6px",
-                backgroundColor: "rgba(0,255,135,0.1)",
+                backgroundColor: "rgba(123,47,255,0.12)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "14px",
-                color: "#00FF87",
+                color: "#7b2fff",
                 fontWeight: 700,
               }}
             >
@@ -258,7 +258,7 @@ export async function GET(req: NextRequest) {
             <span style={{ fontSize: "16px", fontWeight: 700, color: "#E8EAF0" }}>
               Hack
             </span>
-            <span style={{ fontSize: "16px", fontWeight: 700, color: "#00FF87" }}>
+            <span style={{ fontSize: "16px", fontWeight: 700, color: "#7b2fff" }}>
               Track
             </span>
             <span style={{ fontSize: "13px", color: "#454D66", marginLeft: "8px" }}>

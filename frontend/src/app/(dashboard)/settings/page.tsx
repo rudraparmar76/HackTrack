@@ -259,8 +259,8 @@ export default function SettingsPage() {
           <div className="hack-card rounded-xl p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {isPublic ? (
-                <div className="w-9 h-9 rounded-lg bg-[#00FF87]/10 flex items-center justify-center">
-                  <Eye className="w-4 h-4 text-[#00FF87]" />
+                <div className="w-9 h-9 rounded-lg bg-[rgba(123,47,255,0.1)] flex items-center justify-center">
+                  <Eye className="w-4 h-4 text-[var(--purple-primary)]" />
                 </div>
               ) : (
                 <div className="w-9 h-9 rounded-lg bg-[#454D66]/20 flex items-center justify-center">
@@ -281,7 +281,7 @@ export default function SettingsPage() {
             <button
               onClick={() => setIsPublic(!isPublic)}
               className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-                isPublic ? "bg-[#00FF87]" : "bg-[#1E2330]"
+                isPublic ? "bg-[var(--purple-primary)]" : "bg-[#1E2330]"
               }`}
             >
               <span
@@ -302,7 +302,7 @@ export default function SettingsPage() {
                   <Loader2 className="w-3 h-3 animate-spin text-[#7A8099]" />
                 )}
                 {usernameStatus === "available" && (
-                  <span className="flex items-center gap-1 text-xs text-[#00FF87]">
+                  <span className="flex items-center gap-1 text-xs text-[var(--purple-primary)]">
                     <Check className="w-3 h-3" /> Available
                   </span>
                 )}
@@ -410,7 +410,7 @@ export default function SettingsPage() {
               <a
                 href={`/u/${username}`}
                 target="_blank"
-                className="inline-flex items-center gap-1.5 text-sm text-[#7A8099] hover:text-[#00FF87] transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm text-[#7A8099] hover:text-[var(--purple-primary)] transition-colors"
               >
                 View Public Profile <ExternalLink className="w-3.5 h-3.5" />
               </a>
