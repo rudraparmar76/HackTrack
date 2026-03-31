@@ -666,6 +666,10 @@ export default function HackathonDetailPage() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6 mt-6">
+          <div className="dash-terminal mb-4">
+            <span>$ hacktrack --overview</span>
+            <span className="cursor"></span>
+          </div>
           {/* Banner */}
           {hackathon.banner_url && (
             <div className="rounded-xl overflow-hidden h-48 border border-[rgba(123,47,255,0.2)] shadow-[0_0_20px_rgba(123,47,255,0.1)]">
@@ -992,16 +996,28 @@ export default function HackathonDetailPage() {
 
         {/* Checklist Tab */}
         <TabsContent value="checklist" className="mt-6">
+          <div className="dash-terminal mb-4">
+            <span>$ hacktrack --checklist</span>
+            <span className="cursor"></span>
+          </div>
           <SubmissionChecklist hackathonId={hackathonId} />
         </TabsContent>
 
         {/* Find Teammates Tab */}
         <TabsContent value="teammates" className="mt-6">
+          <div className="dash-terminal mb-4">
+            <span>$ hacktrack --find-teammates</span>
+            <span className="cursor"></span>
+          </div>
           <FindTeammates hackathonId={hackathonId} />
         </TabsContent>
 
         {/* Team Tab */}
         <TabsContent value="team" className="space-y-4 mt-6">
+          <div className="dash-terminal mb-4">
+            <span>$ hacktrack --team</span>
+            <span className="cursor"></span>
+          </div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider flex items-center gap-2">
@@ -1137,6 +1153,10 @@ export default function HackathonDetailPage() {
 
         {/* Progress Tab — Kanban */}
         <TabsContent value="progress" className="space-y-4 mt-6">
+          <div className="dash-terminal mb-4">
+            <span>$ hacktrack --progress</span>
+            <span className="cursor"></span>
+          </div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider flex items-center gap-2">
@@ -1244,6 +1264,10 @@ export default function HackathonDetailPage() {
 
         {/* Notes Tab */}
         <TabsContent value="notes" className="space-y-4 mt-6">
+          <div className="dash-terminal mb-4">
+            <span>$ hacktrack --notes</span>
+            <span className="cursor"></span>
+          </div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xs font-mono font-bold text-[var(--cyan-accent)] uppercase tracking-wider flex items-center gap-2">
               <span className="text-[var(--text-secondary)]">//</span> Notes & Scratchpad

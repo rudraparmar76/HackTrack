@@ -157,26 +157,30 @@ export function HackathonPipeline({ currentStatus, onUpdate }: HackathonPipeline
                   <button
                     onClick={() => handleStageClick(stage.id, idx)}
                     disabled={loading !== null}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all border border-transparent whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-none font-mono transition-all border border-transparent whitespace-nowrap ${
                       isCurrent && stage.id !== "result"
-                        ? "bg-[rgba(0,212,255,0.1)] border-[var(--cyan-accent)] shadow-[0_0_8px_rgba(0,212,255,0.2)]"
-                        : "hover:bg-[rgba(123,47,255,0.1)] hover:border-[rgba(123,47,255,0.3)]"
+                        ? "bg-[rgba(0,212,255,0.05)] border-l-2 border-l-[var(--cyan-accent)] text-[var(--cyan-accent)]"
+                        : "hover:bg-[rgba(123,47,255,0.05)] hover:border-l-2 hover:border-l-[rgba(123,47,255,0.3)]"
                     } ${bgColor}`}
                   >
                     {loading === stage.id ? (
-                      <Loader2 className={`w-4 h-4 animate-spin ${iconColor}`} />
+                      <Loader2 className={`w-3.5 h-3.5 animate-spin ${iconColor}`} />
                     ) : (
-                      <StatusIcon className={`w-4 h-4 ${iconColor}`} />
+                      <span className={`text-[#454D66] font-bold`}>
+                         {isCompleted ? "[x]" : "[ ]"}
+                      </span>
                     )}
-                    <span className={`text-sm tracking-wide ${textColor}`}>
+                    <span className={`text-xs tracking-wide uppercase ${textColor}`}>
                       {stage.id === "result" && isCompleted && currentStatus !== "submitted"
-                        ? currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)
+                        ? currentStatus
                         : stage.label}
                     </span>
                   </button>
 
                   {idx < STAGES.length - 1 && (
-                    <ChevronRight className={`w-4 h-4 mx-2 ${isPast ? "text-[var(--cyan-accent)]/50" : "text-[#454D66]"}`} />
+                    <span className={`mx-2 text-xs font-mono ${isPast ? "text-[var(--cyan-accent)]/50" : "text-[#454D66]"}`}>
+                      {">"}
+                    </span>
                   )}
                 </div>
               );
