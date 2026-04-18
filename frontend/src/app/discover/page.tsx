@@ -447,6 +447,7 @@ function DiscoverContent() {
         limit: "20",
         sort,
         status: "open",
+        liveOnly: "true",
       });
       if (platform !== "all") params.set("platform", platform);
 
@@ -457,7 +458,9 @@ function DiscoverContent() {
       }
       if (combinedSearch) params.set("search", combinedSearch);
 
-      const res = await fetch(`${API_URL}/api/public/hackathons?${params}`);
+      const res = await fetch(`${API_URL}/api/public/hackathons?${params}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       setHackathons(data.hackathons || []);
       setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 0 });

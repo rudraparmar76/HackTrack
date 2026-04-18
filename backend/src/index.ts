@@ -96,6 +96,38 @@ function daysUntil(value: string | null | undefined): number | null {
   return Math.floor((deadlineDay - todayDay) / 86400000);
 }
 
+function toIsoDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10);
+}
+
+function derivePublicHackathonStatus(
+  rawStatus: string | null | undefined,
+  registrationDeadline: string | null | undefined,
+  endDate: string | null | undefined
+): "open" | "closed" {
+  const todayIsoDate = new Date().toISOString().slice(0, 10);
+  const registrationIsoDate = toIsoDate(registrationDeadline);
+  const endIsoDate = toIsoDate(endDate);
+  const normalizedStatus = (rawStatus || "").trim().toLowerCase();
+
+  if (["closed", "ended", "archived"].includes(normalizedStatus)) {
+    return "closed";
+  }
+
+  if (registrationIsoDate && registrationIsoDate < todayIsoDate) {
+    return "closed";
+  }
+
+  if (endIsoDate && endIsoDate < todayIsoDate) {
+    return "closed";
+  }
+
+  return "open";
+}
+
 const DEFAULT_CHECKLIST_ITEMS = [
   "Read all problem statements",
   "Form team & assign roles",
@@ -1544,14 +1576,18 @@ app.get("/api/hackathons/:id/ideas", async (req, res) => {
 // ============ PUBLIC HACKATHON DISCOVERY ============
 app.get("/api/public/hackathons", async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store, max-age=0");
+
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const offset = (page - 1) * limit;
 
     const platform = (req.query.platform as string)?.trim();
     const status = (req.query.status as string)?.trim() || "open";
+    const liveOnly = ((req.query.liveOnly as string)?.trim().toLowerCase() || "true") !== "false";
     const search = (req.query.search as string)?.trim();
     const sort = (req.query.sort as string)?.trim() || "newest";
+    const todayIsoDate = new Date().toISOString().slice(0, 10);
 
     let query = supabase
       .from("public_hackathons")
@@ -1561,6 +1597,11 @@ app.get("/api/public/hackathons", async (req, res) => {
     if (status) query = query.eq("status", status);
     if (platform) query = query.ilike("platform", platform);
     if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+    if (liveOnly) {
+      query = query
+        .not("registration_deadline", "is", null)
+        .gte("registration_deadline", todayIsoDate);
+    }
 
     // Sorting
     switch (sort) {
@@ -1619,27 +1660,41 @@ app.all("/api/cron/scrape-hackathons", async (req, res) => {
 
     const crawlData: any = await response.json();
     const hackathons = crawlData.hackathons || [];
+    const staleDaysRaw = parseInt(process.env.PUBLIC_HACKATHON_STALE_DAYS || "3", 10);
+    const staleDays = Number.isFinite(staleDaysRaw) && staleDaysRaw > 0 ? staleDaysRaw : 3;
+    const staleBeforeIso = new Date(Date.now() - staleDays * 24 * 60 * 60 * 1000).toISOString();
 
     let upserted = 0;
     let failed = 0;
+    let cleanupCandidates = 0;
+    let cleanupClosed = 0;
+    let cleanupStatus: "completed" | "skipped" | "failed" = "completed";
+    let cleanupReason = "";
+    const refreshedSources = new Set<string>();
+    const refreshedPlatforms = new Set<string>();
 
     for (const h of hackathons) {
+      const registrationDeadline = h.registration_deadline || null;
+      const endDate = h.end_date || null;
+
+      if (h.source_url) refreshedSources.add(h.source_url);
+      if (h.platform) refreshedPlatforms.add(h.platform);
+
       const row: Record<string, any> = {
         name: h.name,
         platform: h.platform || null,
         banner_url: h.banner_url || null,
         description: h.description || null,
+        start_date: h.start_date || null,
+        end_date: endDate,
+        registration_deadline: registrationDeadline,
         prize_pool: h.prize_pool || null,
         tags: [...new Set(h.tags || [])].filter(Boolean),
         source_url: h.source_url,
-        status: h.status || "open",
+        status: derivePublicHackathonStatus(h.status, registrationDeadline, endDate),
         is_public: true,
         scraped_at: new Date().toISOString(),
       };
-
-      if (h.start_date) row.start_date = h.start_date;
-      if (h.end_date) row.end_date = h.end_date;
-      if (h.registration_deadline) row.registration_deadline = h.registration_deadline;
 
       const { error } = await supabase
         .from("public_hackathons")
@@ -1653,6 +1708,48 @@ app.all("/api/cron/scrape-hackathons", async (req, res) => {
       }
     }
 
+    // Close stale rows that are still marked open but were not seen in recent successful crawls.
+    if (refreshedSources.size === 0 || refreshedPlatforms.size === 0) {
+      cleanupStatus = "skipped";
+      cleanupReason = "empty-crawl";
+    } else {
+      const { data: staleOpenRows, error: staleFetchError } = await supabase
+        .from("public_hackathons")
+        .select("id, source_url")
+        .eq("is_public", true)
+        .eq("status", "open")
+        .in("platform", [...refreshedPlatforms])
+        .lt("scraped_at", staleBeforeIso)
+        .limit(5000);
+
+      if (staleFetchError) {
+        cleanupStatus = "failed";
+        cleanupReason = staleFetchError.message;
+        console.error("Cleanup fetch failed:", staleFetchError.message);
+      } else {
+        const staleIds = (staleOpenRows || [])
+          .filter((row: any) => row.source_url && !refreshedSources.has(row.source_url))
+          .map((row: any) => row.id as string);
+
+        cleanupCandidates = staleIds.length;
+
+        if (staleIds.length > 0) {
+          const { error: closeError } = await supabase
+            .from("public_hackathons")
+            .update({ status: "closed" })
+            .in("id", staleIds);
+
+          if (closeError) {
+            cleanupStatus = "failed";
+            cleanupReason = closeError.message;
+            console.error("Cleanup close failed:", closeError.message);
+          } else {
+            cleanupClosed = staleIds.length;
+          }
+        }
+      }
+    }
+
     res.json({
       ok: true,
       job: "scrape-hackathons",
@@ -1661,6 +1758,13 @@ app.all("/api/cron/scrape-hackathons", async (req, res) => {
         upserted,
         failed,
         by_platform: crawlData.by_platform || {},
+        cleanup: {
+          status: cleanupStatus,
+          reason: cleanupReason || null,
+          stale_days: staleDays,
+          candidates: cleanupCandidates,
+          closed: cleanupClosed,
+        },
       },
       timestamp: new Date().toISOString(),
     });
