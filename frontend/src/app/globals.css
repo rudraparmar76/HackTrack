@@ -1797,7 +1797,7 @@
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes live-dot-pulse {
 
   0%,
   100% {
@@ -1817,7 +1817,7 @@
   background: var(--cyan-accent);
   border-radius: 50%;
   box-shadow: 0 0 6px var(--cyan-accent);
-  animation: pulse 2s infinite;
+  animation: live-dot-pulse 2s infinite;
 }
 
 .status-active {
