@@ -9,11 +9,8 @@ import {
   Compass,
   LayoutGrid,
   PlusCircle,
-  List,
   Bell,
   User as UserIcon,
-  Users,
-  BellDot,
   Settings,
   HelpCircle,
   LogOut,
@@ -43,8 +40,6 @@ const navSections = [
     label: "SOCIAL",
     items: [
       { href: "/profile", label: "My Profile", icon: UserIcon },
-      // { href: "/team-finder", label: "Team Finder", icon: Users },
-      { href: "/notifications", label: "Notifications", icon: BellDot },
     ],
   },
   {
@@ -61,7 +56,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,13 +65,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       } = await supabase.auth.getUser();
       setUser(user);
       if (user) {
-        const { count } = await supabase
-          .from("notifications")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("read", false);
-        setUnreadCount(count || 0);
-
         const { data: profile } = await supabase
           .from("profiles")
           .select("username")
@@ -199,26 +186,6 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                     >
                       <item.icon style={{ width: "20px", height: "20px", color: "inherit" }} />
                       <span className="flex-1">{item.label}</span>
-                      {item.label === "Notifications" && unreadCount > 0 && (
-                        <span
-                          style={{
-                            minWidth: "18px",
-                            height: "18px",
-                            background: "var(--purple-primary)",
-                            borderRadius: "9px",
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: "10px",
-                            color: "white",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            marginLeft: "auto",
-                            padding: "0 4px",
-                          }}
-                        >
-                          {unreadCount > 9 ? "9+" : unreadCount}
-                        </span>
-                      )}
                     </Link>
                   );
                 })}
