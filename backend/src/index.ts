@@ -1616,9 +1616,12 @@ app.get("/api/public/hackathons", async (req, res) => {
     if (platform) query = query.ilike("platform", platform);
     if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     if (liveOnly) {
-      query = query
-        .not("registration_deadline", "is", null)
-        .gte("registration_deadline", todayIsoDate);
+      // Keep live discovery resilient when platforms don't expose registration deadlines.
+      // Include events with a future registration deadline, or no registration deadline
+      // but a future end date, or unknown dates that are still marked open.
+      query = query.or(
+        `registration_deadline.gte.${todayIsoDate},and(registration_deadline.is.null,end_date.gte.${todayIsoDate}),and(registration_deadline.is.null,end_date.is.null)`
+      );
     }
 
     // Sorting
