@@ -57,9 +57,20 @@ interface Hackathon {
 const statCards = [
   { label: "TOTAL", icon: CheckCircle, key: "total", accent: "text-[var(--cyan-accent)]", bg: "bg-[#00D4FF]/10", rawColor: "var(--cyan-accent)" },
   { label: "ACTIVE", icon: Zap, key: "active", accent: "text-[var(--cyan-accent)]", bg: "bg-[#00D4FF]/10", rawColor: "var(--cyan-accent)" },
-  { label: "SUBMITTED", icon: Users, key: "participated", accent: "text-[var(--cyan-accent)]", bg: "bg-[#00D4FF]/10", rawColor: "var(--cyan-accent)" },
+  { label: "PARTICIPATED", icon: Users, key: "participated", accent: "text-[var(--cyan-accent)]", bg: "bg-[#00D4FF]/10", rawColor: "var(--cyan-accent)" },
   { label: "WON", icon: Trophy, key: "wins", accent: "text-[#FFD700]", bg: "bg-[#FFD700]/10", rawColor: "#FFD700" },
 ];
+
+const DASHBOARD_PARTICIPATED_STATUSES = new Set(["submitted", "won", "completed", "finished", "closed", "archived"]);
+
+function isDashboardParticipatedHackathon(hackathon: Hackathon): boolean {
+  const normalizedStatus = (hackathon.status || "").trim().toLowerCase();
+  if (hackathon.won || DASHBOARD_PARTICIPATED_STATUSES.has(normalizedStatus)) return true;
+
+  const regDays = daysUntil(hackathon.registration_deadline);
+  const subDays = daysUntil(hackathon.submission_deadline);
+  return (regDays !== null && regDays < 0) || (subDays !== null && subDays < 0);
+}
 
 export default function DashboardPage() {
   const supabase = createClient();
@@ -183,9 +194,18 @@ export default function DashboardPage() {
 
   const filtered = useMemo(() => {
     let result = hackathons;
-    if (filter !== "all") {
+
+    if (filter === "all") {
+      result = result.filter((h) => !isDashboardParticipatedHackathon(h));
+    } else if (filter === "participated") {
+      result = result.filter(isDashboardParticipatedHackathon);
+    } else {
       result = result.filter((h) => h.status === filter);
+      if (filter !== "submitted" && filter !== "won") {
+        result = result.filter((h) => !isDashboardParticipatedHackathon(h));
+      }
     }
+
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -199,8 +219,8 @@ export default function DashboardPage() {
       switch (sortBy) {
         case "deadline":
           return (
-            new Date(a.submission_deadline || "9999").getTime() -
-            new Date(b.submission_deadline || "9999").getTime()
+            Math.min(daysUntil(a.registration_deadline) ?? Number.MAX_SAFE_INTEGER, daysUntil(a.submission_deadline) ?? Number.MAX_SAFE_INTEGER) -
+            Math.min(daysUntil(b.registration_deadline) ?? Number.MAX_SAFE_INTEGER, daysUntil(b.submission_deadline) ?? Number.MAX_SAFE_INTEGER)
           );
         case "added":
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -311,8 +331,9 @@ export default function DashboardPage() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 mb-[24px]">
           <Tabs value={filter} onValueChange={setFilter} className="purple-tabs w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
             <TabsList className="bg-[#0a0520] border border-[rgba(123,47,255,0.15)] flex w-max sm:w-auto">
-              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="all">Active</TabsTrigger>
               <TabsTrigger value="building">Building</TabsTrigger>
+              <TabsTrigger value="participated">Participated</TabsTrigger>
               <TabsTrigger value="submitted">Submitted</TabsTrigger>
               <TabsTrigger value="won">Won 🏆</TabsTrigger>
             </TabsList>
@@ -345,7 +366,7 @@ export default function DashboardPage() {
         <div>
           <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "0.15em", borderBottom: "1px solid rgba(123,47,255,0.2)", paddingBottom: "8px", marginBottom: "16px" }} className="uppercase">
             <span style={{ color: "var(--purple-primary)" }}>// </span>
-            {filter === "all" ? "TRACKED" : filter.toUpperCase()} HACKATHONS
+            {filter === "all" ? "ACTIVE TRACKING" : filter === "participated" ? "PARTICIPATED" : filter.toUpperCase()} HACKATHONS
           </h2>
           
           {loading ? (
@@ -367,9 +388,13 @@ export default function DashboardPage() {
                   <path d="M8 12L4 10V4H10L12 8" stroke="var(--purple-primary)" />
                 </svg>
               </div>
-              <h3 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "16px", color: "white" }} className="mb-2">No hackathons tracked yet</h3>
+              <h3 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "16px", color: "white" }} className="mb-2">
+                {filter === "participated" ? "No participated hackathons yet" : "No hackathons tracked yet"}
+              </h3>
               <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "var(--text-secondary)" }} className="mb-6 max-w-sm">
-                Paste a hackathon URL to get started, or browse the discovery feed
+                {filter === "participated"
+                  ? "Hackathons with passed deadlines or completed status will appear here."
+                  : "Paste a hackathon URL to get started, or browse the discovery feed"}
               </p>
               <div className="flex gap-4">
                 <Link href="/hackathon/new">

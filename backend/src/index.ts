@@ -96,6 +96,16 @@ function daysUntil(value: string | null | undefined): number | null {
   return Math.floor((deadlineDay - todayDay) / 86400000);
 }
 
+function isPastDeadline(value: string | null | undefined): boolean {
+  const diff = daysUntil(value);
+  return diff !== null && diff < 0;
+}
+
+function isHackathonParticipated(status: string | null | undefined, won: boolean | null | undefined): boolean {
+  const normalizedStatus = (status || "").trim().toLowerCase();
+  return Boolean(won) || ["submitted", "won", "completed", "finished", "closed", "archived"].includes(normalizedStatus);
+}
+
 function toIsoDate(value: string | null | undefined): string | null {
   if (!value) return null;
   const parsed = new Date(value);
@@ -174,6 +184,8 @@ type HackathonDeadlineRow = {
   name: string;
   registration_deadline: string | null;
   submission_deadline: string | null;
+  status?: string | null;
+  won?: boolean | null;
 };
 
 type TeamMemberEmailRow = {
@@ -318,13 +330,21 @@ async function sendDailyDeadlineDigestEmails() {
 
   const { data, error } = await supabase
     .from("hackathons")
-    .select("id, user_id, name, registration_deadline, submission_deadline")
+    .select("id, user_id, name, registration_deadline, submission_deadline, status, won")
     .or("registration_deadline.not.is.null,submission_deadline.not.is.null")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   const rows = (data || []) as HackathonDeadlineRow[];
-  const hackathonIds = rows.map((row) => row.id);
+  const eligibleRows = rows.filter((row) => {
+    if (isHackathonParticipated(row.status, row.won)) return false;
+
+    const regDays = daysUntil(row.registration_deadline);
+    const subDays = daysUntil(row.submission_deadline);
+    return (regDays !== null && regDays >= 0) || (subDays !== null && subDays >= 0);
+  });
+
+  const hackathonIds = eligibleRows.map((row) => row.id);
   const teamByHackathon = new Map<string, Set<string>>();
 
   if (hackathonIds.length > 0) {
@@ -347,7 +367,7 @@ async function sendDailyDeadlineDigestEmails() {
   const grouped = new Map<string, HackathonDeadlineRow[]>();
   const ownerByEmail = new Map<string, string>();
 
-  for (const row of rows) {
+  for (const row of eligibleRows) {
     const recipients = new Set<string>();
     const ownerEmail = await getUserEmail(row.user_id);
     if (ownerEmail) {
@@ -390,18 +410,11 @@ async function sendDailyDeadlineDigestEmails() {
       .map((h) => {
         const regLabel = formatDeadline(h.registration_deadline);
         const subLabel = formatDeadline(h.submission_deadline);
-        const nearest = Math.min(
-          daysUntil(h.registration_deadline) ?? Number.MAX_SAFE_INTEGER,
-          daysUntil(h.submission_deadline) ?? Number.MAX_SAFE_INTEGER
-        );
-        const nearestText =
-          nearest === Number.MAX_SAFE_INTEGER
-            ? "No upcoming deadline"
-            : nearest < 0
-              ? `${Math.abs(nearest)} day(s) overdue`
-              : nearest === 0
-                ? "Due today"
-                : `${nearest} day(s) left`;
+        const futureOrToday = [daysUntil(h.registration_deadline), daysUntil(h.submission_deadline)]
+          .filter((value): value is number => value !== null && value >= 0);
+        const nearest = futureOrToday.length > 0 ? Math.min(...futureOrToday) : Number.MAX_SAFE_INTEGER;
+        if (nearest === Number.MAX_SAFE_INTEGER) return "";
+        const nearestText = nearest === 0 ? "Due today" : `${nearest} day(s) left`;
 
         return `<li style=\"margin-bottom: 10px;\">
           <div style=\"font-weight: 600;\">${h.name}</div>
@@ -410,7 +423,13 @@ async function sendDailyDeadlineDigestEmails() {
           <div style=\"color: #0a7a3f; font-size: 12px;\">${nearestText}</div>
         </li>`;
       })
+      .filter(Boolean)
       .join("");
+
+    if (!listItems) {
+      usersSkipped += 1;
+      continue;
+    }
 
     try {
       await resend.emails.send({
@@ -420,9 +439,9 @@ async function sendDailyDeadlineDigestEmails() {
         html: `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
             <h2 style="margin-bottom: 8px;">Your Daily Hackathon Deadlines</h2>
-            <p style="margin: 0 0 12px 0; color: #555;">Here are all your tracked hackathons and their deadlines.</p>
+            <p style="margin: 0 0 12px 0; color: #555;">Here are your upcoming hackathon deadlines.</p>
             <ul style="padding-left: 18px; margin: 0;">
-              ${listItems || "<li>No deadlines found.</li>"}
+              ${listItems}
             </ul>
           </div>
         `,
@@ -444,7 +463,7 @@ async function sendDailyDeadlineDigestEmails() {
     }
   }
 
-  return { usersEmailed, usersSkipped, usersFound: grouped.size };
+  return { usersEmailed, usersSkipped, usersFound: grouped.size, eligibleHackathons: eligibleRows.length };
 }
 
 async function sendTodayDeadlineAlertEmails() {
@@ -635,7 +654,7 @@ app.get("/api/stats", async (req, res) => {
 
   const { data: ownedData, error } = await supabase
     .from("hackathons")
-    .select("id, status, won")
+    .select("id, status, won, registration_deadline, submission_deadline")
     .eq("user_id", user.id);
 
   if (error) return res.status(500).json({ error: error.message });
@@ -659,23 +678,22 @@ app.get("/api/stats", async (req, res) => {
     if (uniqueSharedIds.length > 0) {
       const { data: sharedData } = await supabase
         .from("hackathons")
-        .select("id, status, won")
+        .select("id, status, won, registration_deadline, submission_deadline")
         .in("id", uniqueSharedIds);
       shared = sharedData || [];
     }
   }
 
   const hackathons = [...owned, ...shared];
+  const isParticipatedItem = (h: any) => (
+    isHackathonParticipated(h.status, h.won) ||
+    isPastDeadline(h.registration_deadline) ||
+    isPastDeadline(h.submission_deadline)
+  );
   
   const wins = hackathons.filter(h => h.won === true || h.status === "won").length;
-  // Active = pipeline status is between registered and submitted
-  const active = hackathons.filter(h => 
-    ["registered", "ideating", "building", "submitted"].includes(h.status?.toLowerCase())
-  ).length;
-  // Participated = everything except interested
-  const participated = hackathons.filter(h => 
-    h.status && h.status.toLowerCase() !== "interested"
-  ).length;
+  const active = hackathons.filter((h) => !isParticipatedItem(h)).length;
+  const participated = hackathons.filter(isParticipatedItem).length;
 
   res.json({ wins, active, participated, total: hackathons.length });
 });
