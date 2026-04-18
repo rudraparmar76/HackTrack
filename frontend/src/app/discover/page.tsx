@@ -592,8 +592,8 @@ function DiscoverContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 relative z-10 w-full">
         <div className="flex flex-col gap-3">
           {/* Row 1: Search + Near Me */}
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            <div className="relative w-full sm:flex-1 sm:max-w-md group">
+          <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
+            <div className="relative w-full lg:flex-1 group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors" style={{ color: "var(--text-secondary)" }} />
               <input
                 type="text"
@@ -618,47 +618,7 @@ function DiscoverContent() {
               />
             </div>
 
-            {/* Near Me button */}
-            <button
-              onClick={detectLocation}
-              disabled={detectingLocation}
-              className="inline-flex items-center justify-center gap-2 rounded transition-all whitespace-nowrap focus:outline-none"
-              style={{
-                height: "40px",
-                padding: "0 16px",
-                background: detectingLocation ? "rgba(123,47,255,0.15)" : "var(--bg-card)",
-                border: "1px solid " + (detectingLocation ? "var(--purple-primary)" : "var(--border-glow)"),
-                color: detectingLocation ? "var(--purple-primary)" : "white",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "12px",
-              }}
-              onMouseEnter={(e) => {
-                if (!detectingLocation) {
-                  e.currentTarget.style.borderColor = "var(--purple-primary)";
-                  e.currentTarget.style.color = "var(--cyan-accent)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!detectingLocation) {
-                  e.currentTarget.style.borderColor = "var(--border-glow)";
-                  e.currentTarget.style.color = "white";
-                }
-              }}
-            >
-              {detectingLocation ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Detecting...
-                </>
-              ) : (
-                <>
-                  <MapPin className="w-3.5 h-3.5" style={{ color: "var(--cyan-accent)" }} />
-                  Near me
-                </>
-              )}
-            </button>
-
-            <div className="flex w-full sm:w-auto gap-3 flex-col xs:flex-row sm:items-center sm:ml-auto">
+            <div className="flex w-full lg:w-auto gap-3 flex-col sm:flex-row sm:items-center lg:ml-auto">
               {/* City filter */}
               <div className="flex-1 sm:flex-none">
                 <select
@@ -696,6 +656,46 @@ function DiscoverContent() {
                   ))}
                 </select>
               </div>
+
+              {/* Near Me button */}
+              <button
+                onClick={detectLocation}
+                disabled={detectingLocation}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded transition-all whitespace-nowrap focus:outline-none"
+                style={{
+                  height: "40px",
+                  padding: "0 16px",
+                  background: detectingLocation ? "rgba(123,47,255,0.15)" : "var(--bg-card)",
+                  border: "1px solid " + (detectingLocation ? "var(--purple-primary)" : "var(--border-glow)"),
+                  color: detectingLocation ? "var(--purple-primary)" : "white",
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "12px",
+                }}
+                onMouseEnter={(e) => {
+                  if (!detectingLocation) {
+                    e.currentTarget.style.borderColor = "var(--purple-primary)";
+                    e.currentTarget.style.color = "var(--cyan-accent)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!detectingLocation) {
+                    e.currentTarget.style.borderColor = "var(--border-glow)";
+                    e.currentTarget.style.color = "white";
+                  }
+                }}
+              >
+                {detectingLocation ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-3.5 h-3.5" style={{ color: "var(--cyan-accent)" }} />
+                    Near me
+                  </>
+                )}
+              </button>
 
               {/* Platform filter */}
               <div className="flex-1 sm:flex-none">
