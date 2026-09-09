@@ -1530,7 +1530,7 @@ Return a JSON array of 4 ideas only. No markdown, no code fences, just the JSON 
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "qwen/qwen3.6-27b",
       temperature: 0.8,
       max_tokens: 2048,
       response_format: { type: "json_object" },
